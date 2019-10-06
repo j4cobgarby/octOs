@@ -1,0 +1,4 @@
+build
+*.iso
+bx_*.ini
+*.bin
