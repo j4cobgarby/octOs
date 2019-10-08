@@ -32,13 +32,44 @@ stack_top:
 
 section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
+
+; I have two segments, gdt_code and gdt_data
+; they're both kernel-only segments, so they can't be accessed from userspace code
+; for security reasons.
+; this is because i've set them to be only accessible by ring 0 code, which is the
+; kernel.
+gdt_start:
+gdt_null:
+    dq 0 ; 8 bytes of nothing
+gdt_code:
+    dw 0xffff       ; bits 0-15 of the length of the code segment
+    dw 0x0000       ; bits 0-15 of the base of the code segment
+    db 0x00         ; bits 16-23 of the base of the code segment
+    db 0x9a         ; the access byte. this says that it can only be accessed by the kernel (ring 0)
+    db 11001111b    ; bits 16-19 of the length of the segment, also flags saying 32 bit prot., and 4k blocks
+    db 0x00         ; bits 24-31 of the base
+gdt_data:
+    dw 0xffff       ; bits 0-15 of length
+    dw 0x0000       ; bits 0-15 of base
+    db 0x00         ; bits 16-23 of base
+    db 0x92         ; access byte. non executable, only accessible by kernel (ring 0)
+    db 11001111b    ; bits 16-19 of length, and also flags
+    db 0x00         ; bits 24-31 of base
+GDT_LENGTH equ $ - gdt_start
+
+gdt_descriptor  dw GDT_LENGTH   ; the length of the gdt
+                dd gdt_start   ; the address of the gdt (both to be loaded in from C)
+
 _start: ; the actual entry point to the kernel!
     mov esp, stack_top  ; setup the stack, because obviously it's nice to have a stack, and also
                         ; C programs need a stack to run
 
     ;; load CPU features here, like IDT, GDT, etc.
+    cli
 
-    ;;
+    lgdt [gdt_descriptor]
+
+    xchg bx, bx
 
     extern kernel_main  ; kernel_main is defined in a C file
     call kernel_main    ; run the main kernel procedure
@@ -46,7 +77,7 @@ _start: ; the actual entry point to the kernel!
     ; only gets here if the kernel returns, which would be weird, but if it does happen
     ; then just halt the CPU
     ; if a NMI wakes it up, halt it again
-    cli
 .hlt hlt
     jmp .hlt
+
 .end: ; marks the end of the _start symbol's code
