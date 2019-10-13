@@ -17,9 +17,11 @@ PIC1_DAT        equ PIC1 + 1
 PIC2_CMD        equ PIC2
 PIC2_DAT        equ PIC2 + 1
 
+PIC_EOI     equ 0x20
+
 ICW1        equ 00010001b   ; ICW4 needed
-ICW2_MASTER equ 0x60   ; 0x60
-ICW2_SLAVE  equ 0x70   ; 0x70
+PIC_MASTER_OFFSET equ 0x60   ; 0x60
+PIC_SLAVE_OFFSET  equ 0x70   ; 0x70
 ICW3_MASTER equ 00000100b
 ICW3_SLAVE  equ 00000010b
 ICW4        equ 00000001b   ; 8086/88 mode
@@ -81,7 +83,7 @@ gdt_descriptor  dw gdt_length   ; the length of the gdt
                 dd gdt_start   ; the address of the gdt (both to be loaded in from C)
 
 idt_start:  ; each idt entry is 8 bytes long
-    resd ICW2_MASTER * 2       ; pad with doublewords to get up to PIC entries
+    resd PIC_MASTER_OFFSET * 2       ; pad with doublewords to get up to PIC entries
     dq 0        ; PIT timer 
 idt_keyboard:
     dw 0x0000       ; bits 0-15 of offset
@@ -106,10 +108,10 @@ pic_init:
     out PIC1_CMD, al
     out PIC2_CMD, al
 
-    mov al, ICW2_MASTER
+    mov al, PIC_MASTER_OFFSET
     out PIC1_DAT, al
 
-    mov al, ICW2_SLAVE
+    mov al, PIC_SLAVE_OFFSET
     out PIC2_DAT, al
 
     mov al, ICW3_MASTER
@@ -122,7 +124,7 @@ pic_init:
     out PIC1_DAT, al
     out PIC2_DAT, al
 
-    mov al, 0xfd        ; set masks to 0
+    mov al, 0xfd
     out PIC1_DAT, al
     mov al, 0xff
     out PIC2_DAT, al
@@ -139,16 +141,16 @@ isr_keyboard:
     cli
 
     in al, 0x60
+    mov byte [0xb8000], al
 
-    mov al, 0x20    ; EOI
-    out ICW2_MASTER, al
+    mov al, PIC_EOI    ; EOI
+    out PIC1_CMD, al
 
     mov eax, esp
     add eax, 4
     popa
 
     sti
-    xchg bx, bx
     iret
 
 _start: ; the actual entry point to the kernel!
