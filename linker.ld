@@ -4,7 +4,7 @@ SECTIONS
 {
     /* start putting code at 1MB, apparently this is a
      * normal place for kernel code to be loaded from*/
-    . = 1M;
+    . = 0x100000;
 
     /* multiboot header has to be early on in the image so
      * that grub finds it */
