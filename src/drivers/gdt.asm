@@ -27,7 +27,21 @@ gdt_userland_code:  ; == USER CODE ==
     db 11111010b    ; this says it's ring 3, code, only accessed by ring 3
     db 11001111b    ; 16-19 of length, also 32 bit and 4k granularity
     db 0x00         ; 24-31 of base
+gdt_userland_data:  ; == USER DATA ==
+    dw 0xffff
+    dw 0x0000
+    db 0x00
+    db 11110010b    ; the only difference between this and the user code, is the 5th bit saying it's data
+    db 11001111b
+    db 0x00
+gdt_tss_descriptor: ; == TASK STATE SEGMENT ==
 gdt_length equ $ - gdt_start - 1
+    dw 0x0000;      ; limit low, to be put in later
+    dw 0x0000;      ; base 0-15, put in later
+    db 0x00;        ; base 16-23
+    db 11100010b    ; access info
+    db 0x0000       ; flags, also also 16-19 of limit
+    db 0x00         ; 24-31 of base
 
 gdt_descriptor  dw gdt_length   ; the length of the gdt
                 dd gdt_start   ; the address of the gdt (both to be loaded in from C)
