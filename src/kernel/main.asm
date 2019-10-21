@@ -15,7 +15,6 @@ section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
 
 %include "src/drivers/gdt.asm"
-%include "src/drivers/tss.asm"
 %include "src/drivers/idt.asm"
 %include "src/drivers/pic.asm"
 %include "src/drivers/keyboard.asm"
@@ -23,6 +22,8 @@ global _start:function (_start.end - _start)    ; make the object file store the
 _start: ; kernel entry point
         mov esp, stack_top      ; Set up stack
         cli     ; Disable interrupts until everything is set up
+
+        call fill_tss_descriptor
         lgdt [gdt_descriptor]
         call refresh_segments
         call init_keyboard      ; Put the address of the keyboard ISR
