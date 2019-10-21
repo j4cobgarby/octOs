@@ -1,8 +1,3 @@
-; I have two segments, gdt_code and gdt_data
-; they're both kernel-only segments, so they can't be accessed from userspace code
-; for security reasons.
-; this is because i've set them to be only accessible by ring 0 code, which is the
-; kernel.
 gdt_start:
 gdt_null:
     dq 0 ; 8 bytes of nothing
@@ -35,14 +30,13 @@ gdt_userland_data:  ; == USER DATA ==
     db 11001111b
     db 0x00
 gdt_tss_descriptor: ; == TASK STATE SEGMENT ==
-gdt_length equ $ - gdt_start - 1
     dw 0x0000;      ; limit low, to be put in later
     dw 0x0000;      ; base 0-15, put in later
     db 0x00;        ; base 16-23
     db 11100010b    ; access info
     db 0x0000       ; flags, also also 16-19 of limit
     db 0x00         ; 24-31 of base
-
+gdt_length equ $ - gdt_start - 1
 gdt_descriptor  dw gdt_length   ; the length of the gdt
                 dd gdt_start   ; the address of the gdt (both to be loaded in from C)
 

@@ -15,6 +15,7 @@ section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
 
 %include "src/drivers/gdt.asm"
+%include "src/drivers/tss.asm"
 %include "src/drivers/idt.asm"
 %include "src/drivers/pic.asm"
 %include "src/drivers/keyboard.asm"
