@@ -25,11 +25,15 @@ _start: ; kernel entry point
 
         call fill_tss_descriptor
         lgdt [gdt_descriptor]
+        call load_tss
         call refresh_segments
         call init_keyboard      ; Put the address of the keyboard ISR
                                 ; into the IDT
         lidt [idt_descriptor]
         call pic_init           ; Set up the PIC
+
+        ; now the GDT is set up, as well as a TSS entry, and also the IDT is set up
+        ; ready to go into userspace
 .hltlp: hlt
         jmp .hltlp
 .end:
