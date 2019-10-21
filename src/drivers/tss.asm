@@ -5,3 +5,8 @@ tss_entry:
     dd 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0    ; i won't use the rest of the TSS
                                                         ; because i'm using software task switching
 tss_limit equ $ - tss_entry
+
+load_tss:
+    mov ax, 0x2b    ; the address is 2b because: it's the 5th GDT selector and each entry is 8 bytes long
+    ltr ax      ; loads the address of the TSS segment into the task state register
+    ret
