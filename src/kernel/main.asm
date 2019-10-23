@@ -23,20 +23,16 @@ _start: ; kernel entry point
     mov esp, stack_top      ; Set up stack
     cli     ; Disable interrupts until everything is set up
 
-    xchg bx, bx
     call fill_tss_descriptor
-    ;xchg bx, bx
     lgdt [gdt_descriptor]
-    xchg bx, bx
     call load_tss
-    xchg bx, bx
     call refresh_segments
     call init_keyboard      ; Put the address of the keyboard ISR
                             ; into the IDT
     lidt [idt_descriptor]
     call pic_init           ; Set up the PIC
 
-    jmp .hltlp
+    ;jmp .hltlp
 
     ; now the GDT is set up, as well as a TSS entry, and also the IDT is set up
     ; ready to go into userspace
