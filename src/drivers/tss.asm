@@ -7,6 +7,6 @@ tss_entry:
 tss_limit equ $ - tss_entry
 
 load_tss:
-    mov ax, 0x2b    ; the address is 2b because: it's the 5th GDT selector and each entry is 8 bytes long
+    mov ax, 00101011b    ; the address is 2b because: it's the 5th GDT selector and each entry is 8 bytes long
     ltr ax      ; loads the address of the TSS segment into the task state register
     ret
