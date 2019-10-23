@@ -47,13 +47,11 @@ fill_tss_descriptor:
         ; it'll basiclaly begin a new stack from the top of the stack buffer, since there's no need to make it keep the
         ; stack the same between syscalls
 
-    ;xchg bx, bx
     mov word [gdt_tss_descriptor],       tss_limit & 0xffff          ; isolate the first 2 bytes of the limit
     mov word [gdt_tss_descriptor + 2],   (0x100000 + tss_entry - $$) & 0xffff          ; first 2 bytes of base of tss entry
     mov byte [gdt_tss_descriptor + 4],   ((0x100000 + tss_entry - $$) >> 16) & 0xff    ; next byte of the base
     mov byte [gdt_tss_descriptor + 6],   (tss_limit >> 16) & 0xf     ; next byte of limit
     mov byte [gdt_tss_descriptor + 7],   ((0x100000 + tss_entry - $$) >> 24) & 0xff     ; last byte of base
-    ;xchg bx, bx
     ret
 
 ; This procedure should be called after the lgdt
@@ -61,7 +59,6 @@ fill_tss_descriptor:
 ; It sets the various segment registers to their
 ; new values.
 refresh_segments:
-    xchg bx, bx
     jmp 0x08:refresh_segment_registers
 refresh_segment_registers:
     mov ax, 0x10    ; 0x10 is the data selector in the GDT

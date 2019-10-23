@@ -3,5 +3,5 @@
 global userspace_entry
 userspace_entry:
     xchg bx, bx
-    cli
+    mov ax, 0xff
     jmp $
