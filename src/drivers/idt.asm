@@ -1,5 +1,5 @@
 idt_start:  ; each idt entry is 8 bytes long
-    resd PIC_MASTER_OFFSET * 2       ; pad with doublewords to get up to PIC entries
+    times PIC_MASTER_OFFSET * 2 dd 0       ; pad with doublewords to get up to PIC entries
     dq 0        ; PIT timer 
 idt_keyboard:
     dw 0x0000       ; bits 0-15 of offset
