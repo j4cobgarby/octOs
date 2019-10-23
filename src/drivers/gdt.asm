@@ -33,7 +33,7 @@ gdt_tss_descriptor: ; == TASK STATE SEGMENT ==
     dw 0x0000;      ; limit low, to be put in later
     dw 0x0000;      ; base 0-15, put in later
     db 0x00;        ; base 16-23
-    db 11100010b    ; access info
+    db 11101001b    ; access info
     db 0x00       ; flags, also also 16-19 of limit
     db 0x00         ; 24-31 of base
 gdt_length equ $ - gdt_start - 1
@@ -43,15 +43,17 @@ gdt_descriptor  dw gdt_length   ; the length of the gdt
 %include "src/drivers/tss.asm"
 
 fill_tss_descriptor:
-    mov [tss_entry + 4], stack_top  ; whenever ring 0 is entered (for a syscall or whatever), the handler needs a stack
+    mov dword [tss_entry + 4], stack_top  ; whenever ring 0 is entered (for a syscall or whatever), the handler needs a stack
         ; it'll basiclaly begin a new stack from the top of the stack buffer, since there's no need to make it keep the
         ; stack the same between syscalls
 
-    mov [gdt_tss_descriptor],       tss_limit & 0xffff          ; isolate the first 2 bytes of the limit
-    mov [gdt_tss_descriptor + 2],   tss_entry & 0xffff          ; first 2 bytes of base of tss entry
-    mov [gdt_tss_descriptor + 4],   (tss_entry >> 16) & 0xff    ; next byte of the base
-    mov [gdt_tss_descriptor + 7],   (tss_limit >> 16) & 0xf     ; next byte of limit
-    mov [gdt_tss_descriptor + 8],   (tss_entry >> 24) & 0xf     ; last byte of base
+    ;xchg bx, bx
+    mov word [gdt_tss_descriptor],       tss_limit & 0xffff          ; isolate the first 2 bytes of the limit
+    mov word [gdt_tss_descriptor + 2],   (0x100000 + tss_entry - $$) & 0xffff          ; first 2 bytes of base of tss entry
+    mov byte [gdt_tss_descriptor + 4],   ((0x100000 + tss_entry - $$) >> 16) & 0xff    ; next byte of the base
+    mov byte [gdt_tss_descriptor + 6],   (tss_limit >> 16) & 0xf     ; next byte of limit
+    mov byte [gdt_tss_descriptor + 7],   ((0x100000 + tss_entry - $$) >> 24) & 0xff     ; last byte of base
+    ;xchg bx, bx
     ret
 
 ; This procedure should be called after the lgdt
@@ -59,6 +61,7 @@ fill_tss_descriptor:
 ; It sets the various segment registers to their
 ; new values.
 refresh_segments:
+    xchg bx, bx
     jmp 0x08:refresh_segment_registers
 refresh_segment_registers:
     mov ax, 0x10    ; 0x10 is the data selector in the GDT
