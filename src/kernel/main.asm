@@ -18,6 +18,9 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/idt.asm"
 %include "src/drivers/pic.asm"
 %include "src/drivers/keyboard.asm"
+%include "src/drivers/syscall.asm"
+
+console_cursor_pos dd 0 ; linear position through console
 
 _start: ; kernel entry point
     mov esp, stack_top      ; Set up stack
@@ -27,8 +30,11 @@ _start: ; kernel entry point
     lgdt [gdt_descriptor]
     call load_tss
     call refresh_segments
+
+    ; Set up addresses of various IDT descriptors
     call init_keyboard      ; Put the address of the keyboard ISR
                             ; into the IDT
+    call init_syscall
     lidt [idt_descriptor]
     call pic_init           ; Set up the PIC
 
