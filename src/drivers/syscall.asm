@@ -58,11 +58,53 @@ syscall_console_reset:
 
 ; EAX=2 BL=char
 syscall_console_putchar:
-    xchg bx, bx
     pusha
     mov ecx, SCREEN_MIN
     add ecx, [console_cursor_pos]
     mov byte [ecx], bl
     add dword [console_cursor_pos], 2
+    popa
+    ret
+
+; EAX=3 EBX=direction
+syscall_console_movecursor:
+    pusha
+
+    ; directions:
+    ;  0: up
+    ;  1: down
+    ;  2: left
+    ;  3: right
+    cmp ebx, 0
+    je .up
+    cmp ebx, 1
+    je .down
+    cmp ebx, 2
+    je .left
+    cmp ebx, 3
+    je .right
+    jmp .end    ; if none, go to end
+.up:
+    sub dword [console_cursor_pos], 80 * 2
+    jmp .end
+.down:
+    add dword [console_cursor_pos], 80 * 2
+    jmp .end
+.left:
+    sub dword [console_cursor_pos], 2
+    jmp .end
+.right:
+    add dword [console_cursor_pos], 2
+    jmp .end
+.end:
+    ;; Now, clamp the position to the bounds of the screen
+    cmp dword [console_cursor_pos], SCREEN_MIN
+    jge .notless
+    mov dword [console_cursor_pos], SCREEN_MIN
+.notless:
+    cmp dword [console_cursor_pos], SCREEN_MAX
+    jle .notmore
+    mov dword [console_cursor_pos], SCREEN_MAX
+.notmore:
     popa
     ret

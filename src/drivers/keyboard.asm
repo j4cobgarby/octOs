@@ -3,13 +3,9 @@ isr_keyboard:
     cli
 
     in al, 0x60
+
     mov byte [0xb8000], al
 
-    mov al, PIC_EOI    ; EOI
-    out PIC1_CMD, al
-
-    mov eax, esp
-    add eax, 4
     popa
 
     sti
