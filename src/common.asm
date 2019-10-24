@@ -7,5 +7,11 @@ PIC2_DAT        equ PIC2 + 1
 
 PIC_EOI         equ 0x20    ; byte to send to PIC CMD port to acknowledge end of interrupt
 
-PIC_MASTER_OFFSET       equ 0x20
-PIC_SLAVE_OFFSET        equ 0x30
+PIC_MASTER_OFFSET   equ 0x20
+PIC_SLAVE_OFFSET    equ 0x30
+
+SYSCALL_OFSET   equ 0x80
+
+SCREEN_COLOUR   equ 0x31
+SCREEN_MIN  equ 0xb8000
+SCREEN_MAX  equ 0xb8fa0
