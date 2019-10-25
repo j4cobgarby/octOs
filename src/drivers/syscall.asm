@@ -2,7 +2,6 @@ console_row dd 0
 console_col dd 0
 
 isr_syscall:
-    pusha
     cli
 
     cmp eax, 0
@@ -17,8 +16,10 @@ isr_syscall:
 .s3:cmp eax, 3
     jne .s4
     call syscall_console_movecursor
-.s4
-    popa
+.s4:cmp eax, 4
+    jne .s5
+    call syscall_console_setcursor
+.s5
     sti
     iret
 
@@ -132,4 +133,10 @@ syscall_console_movecursor:
     mov dword [console_col], (SCREEN_COLS-1)
 .colnotmore:
     popa
+    ret
+
+; EAX=4, EBX=row, ECX=column
+syscall_console_setcursor:
+    mov dword [console_row], ebx
+    mov dword [console_col], ecx
     ret
