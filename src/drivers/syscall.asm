@@ -1,3 +1,6 @@
+console_row dd 0
+console_col dd 0
+
 isr_syscall:
     pusha
     cli
@@ -11,7 +14,10 @@ isr_syscall:
 .s2:cmp eax, 2
     jne .s3
     call syscall_console_putchar
-.s3:
+.s3:cmp eax, 3
+    jne .s4
+    call syscall_console_movecursor
+.s4
     popa
     sti
     iret
@@ -35,6 +41,9 @@ syscall_console_write:
     mov byte bl, [ebx]
     mov eax, 2
     int 0x80
+    mov eax, 3
+    mov ebx, 3
+    int 0x80
     pop ebx
     inc ebx
     jmp .loop
@@ -52,17 +61,25 @@ syscall_console_reset:
     add ecx, 2
     cmp ecx, SCREEN_MAX
     jl .loop
-    mov dword [console_cursor_pos], 0 ; reset cursor
+    mov dword [console_row], 0 ; reset cursor
+    mov dword [console_col], 0
     popa
     ret
 
 ; EAX=2 BL=char
 syscall_console_putchar:
     pusha
-    mov ecx, SCREEN_MIN
-    add ecx, [console_cursor_pos]
+    mov ecx, [console_row]
+
+    imul ecx, 80
+
+    add ecx, [console_col]
+
+    shl ecx, 1  ; ecx *= 2
+
+    add ecx, SCREEN_MIN
     mov byte [ecx], bl
-    add dword [console_cursor_pos], 2
+
     popa
     ret
 
@@ -85,26 +102,34 @@ syscall_console_movecursor:
     je .right
     jmp .end    ; if none, go to end
 .up:
-    sub dword [console_cursor_pos], 80 * 2
+    sub dword [console_row], 1
     jmp .end
 .down:
-    add dword [console_cursor_pos], 80 * 2
+    add dword [console_row], 1
     jmp .end
 .left:
-    sub dword [console_cursor_pos], 2
+    sub dword [console_col], 1
     jmp .end
 .right:
-    add dword [console_cursor_pos], 2
+    add dword [console_col], 1
     jmp .end
 .end:
     ;; Now, clamp the position to the bounds of the screen
-    cmp dword [console_cursor_pos], SCREEN_MIN
-    jge .notless
-    mov dword [console_cursor_pos], SCREEN_MIN
-.notless:
-    cmp dword [console_cursor_pos], SCREEN_MAX
-    jle .notmore
-    mov dword [console_cursor_pos], SCREEN_MAX
-.notmore:
+    cmp dword [console_row], 0
+    jge .rownotless
+    mov dword [console_row], 0
+.rownotless:
+    cmp dword [console_col], 0
+    jge .colnotless
+    mov dword [console_row], 0
+.colnotless:
+    cmp dword [console_row], (SCREEN_ROWS-1)
+    jle .rownotmore
+    mov dword [console_row], (SCREEN_ROWS-1)
+.rownotmore:
+    cmp dword [console_col], (SCREEN_COLS-1)
+    jle .colnotmore
+    mov dword [console_col], (SCREEN_COLS-1)
+.colnotmore:
     popa
     ret

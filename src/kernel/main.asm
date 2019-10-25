@@ -20,8 +20,6 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/keyboard.asm"
 %include "src/drivers/syscall.asm"
 
-console_cursor_pos dd 0 ; linear position through console
-
 _start: ; kernel entry point
     mov esp, stack_top      ; Set up stack
     cli     ; Disable interrupts until everything is set up
