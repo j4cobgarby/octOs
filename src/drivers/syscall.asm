@@ -19,7 +19,7 @@ isr_syscall:
 .s4:cmp eax, 4
     jne .s5
     call syscall_console_setcursor
-.s5
+.s5:
     sti
     iret
 
@@ -38,13 +38,12 @@ syscall_console_write:
 .loop:
     cmp byte [ebx], 0
     je .end ; is reached null byte, break loop
+
     push ebx
-    mov byte bl, [ebx]
+    mov byte bl, [ebx] ; putchar [ebx]
     mov eax, 2
     int 0x80
-    mov eax, 3
-    mov ebx, 3
-    int 0x80
+    
     pop ebx
     inc ebx
     jmp .loop
@@ -70,17 +69,27 @@ syscall_console_reset:
 ; EAX=2 BL=char
 syscall_console_putchar:
     pusha
+
+    cmp bl, 10 ; newline
+    je .newline
+    jmp .otherwise
+.newline:
+    inc dword [console_row]
+    mov dword [console_col], 0
+    jmp .end
+.otherwise:
     mov ecx, [console_row]
-
     imul ecx, 80
-
     add ecx, [console_col]
-
     shl ecx, 1  ; ecx *= 2
 
     add ecx, SCREEN_MIN
     mov byte [ecx], bl
 
+    mov eax, 3
+    mov ebx, 3
+    int 0x80
+.end:
     popa
     ret
 
