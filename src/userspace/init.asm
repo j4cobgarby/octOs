@@ -1,6 +1,6 @@
 ; This will contain the init procedure for userspace
 
-welcome db "Welcome to octOs!", 0
+welcome db "Welcome to octOs!",10,"This is a test", 0
 
 global userspace_entry
 userspace_entry:    
