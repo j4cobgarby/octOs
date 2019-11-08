@@ -1,5 +1,7 @@
+console_row dd 0
+console_col dd 0
+
 isr_syscall:
-    pusha
     cli
 
     cmp eax, 0
@@ -11,8 +13,13 @@ isr_syscall:
 .s2:cmp eax, 2
     jne .s3
     call syscall_console_putchar
-.s3:
-    popa
+.s3:cmp eax, 3
+    jne .s4
+    call syscall_console_movecursor
+.s4:cmp eax, 4
+    jne .s5
+    call syscall_console_setcursor
+.s5:
     sti
     iret
 
@@ -31,10 +38,12 @@ syscall_console_write:
 .loop:
     cmp byte [ebx], 0
     je .end ; is reached null byte, break loop
+
     push ebx
-    mov byte bl, [ebx]
+    mov byte bl, [ebx] ; putchar [ebx]
     mov eax, 2
     int 0x80
+    
     pop ebx
     inc ebx
     jmp .loop
@@ -52,17 +61,91 @@ syscall_console_reset:
     add ecx, 2
     cmp ecx, SCREEN_MAX
     jl .loop
-    mov dword [console_cursor_pos], 0 ; reset cursor
+    mov dword [console_row], 0 ; reset cursor
+    mov dword [console_col], 0
     popa
     ret
 
 ; EAX=2 BL=char
 syscall_console_putchar:
-    xchg bx, bx
     pusha
-    mov ecx, SCREEN_MIN
-    add ecx, [console_cursor_pos]
+
+    cmp bl, 10 ; newline
+    je .newline
+    jmp .otherwise
+.newline:
+    inc dword [console_row]
+    mov dword [console_col], 0
+    jmp .end
+.otherwise:
+    mov ecx, [console_row]
+    imul ecx, 80
+    add ecx, [console_col]
+    shl ecx, 1  ; ecx *= 2
+
+    add ecx, SCREEN_MIN
     mov byte [ecx], bl
-    add dword [console_cursor_pos], 2
+
+    mov eax, 3
+    mov ebx, 3
+    int 0x80
+.end:
     popa
+    ret
+
+; EAX=3 EBX=direction
+syscall_console_movecursor:
+    pusha
+
+    ; directions:
+    ;  0: up
+    ;  1: down
+    ;  2: left
+    ;  3: right
+    cmp ebx, 0
+    je .up
+    cmp ebx, 1
+    je .down
+    cmp ebx, 2
+    je .left
+    cmp ebx, 3
+    je .right
+    jmp .end    ; if none, go to end
+.up:
+    sub dword [console_row], 1
+    jmp .end
+.down:
+    add dword [console_row], 1
+    jmp .end
+.left:
+    sub dword [console_col], 1
+    jmp .end
+.right:
+    add dword [console_col], 1
+    jmp .end
+.end:
+    ;; Now, clamp the position to the bounds of the screen
+    cmp dword [console_row], 0
+    jge .rownotless
+    mov dword [console_row], 0
+.rownotless:
+    cmp dword [console_col], 0
+    jge .colnotless
+    mov dword [console_row], 0
+.colnotless:
+    cmp dword [console_row], (SCREEN_ROWS-1)
+    jle .rownotmore
+    mov dword [console_row], (SCREEN_ROWS-1)
+.rownotmore:
+    cmp dword [console_col], (SCREEN_COLS-1)
+    jle .colnotmore
+    mov dword [console_col], (SCREEN_COLS-1)
+.colnotmore:
+    popa
+    ret
+
+; EAX=4, EBX=row, ECX=column
+syscall_console_setcursor:
+    mov dword [console_row], ebx
+    mov dword [console_col], ecx
     ret

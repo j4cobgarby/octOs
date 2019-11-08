@@ -1,16 +1,14 @@
 ; This will contain the init procedure for userspace
 
-msg db "Hello, world!", 0
+welcome db "Welcome to octOs!",10,"This is a test", 0
 
 global userspace_entry
-userspace_entry:
-    
-    ;xchg bx, bx
+userspace_entry:    
     mov eax, 1
     int 0x80
 
     mov eax, 0
-    mov ebx, msg
+    mov ebx, welcome
     int 0x80
 
     jmp $
