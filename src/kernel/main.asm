@@ -19,6 +19,7 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/pic.asm"
 %include "src/drivers/keyboard.asm"
 %include "src/drivers/syscall.asm"
+%include "src/drivers/ata_pio.asm"
 
 _start: ; kernel entry point
     mov esp, stack_top      ; Set up stack
@@ -35,6 +36,10 @@ _start: ; kernel entry point
     call init_syscall
     lidt [idt_descriptor]
     call pic_init           ; Set up the PIC
+
+    call ata_pio_detect
+
+    xchg bx, bx
 
     ;jmp .hltlp
 
