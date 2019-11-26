@@ -7,18 +7,27 @@ isr_syscall:
     cmp eax, 0
     jne .s1 ; skip next line
     call syscall_console_write
-.s1:cmp eax, 1
+    iret
+.s1:
+    cmp eax, 1
     jne .s2
     call syscall_console_reset
-.s2:cmp eax, 2
+    iret
+.s2:
+    cmp eax, 2
     jne .s3
     call syscall_console_putchar
-.s3:cmp eax, 3
+    iret
+.s3:
+    cmp eax, 3
     jne .s4
     call syscall_console_movecursor
-.s4:cmp eax, 4
+    iret
+.s4:
+    cmp eax, 4
     jne .s5
     call syscall_console_setcursor
+    iret
 .s5:
     sti
     iret
