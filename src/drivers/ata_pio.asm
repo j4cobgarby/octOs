@@ -3,27 +3,39 @@ ATA_BUS2_BASE       equ 0x170
 ATA_BUS1_CTRL       equ 0x3f6
 ATA_BUS2_CTRL       equ 0x376
 
-ATA_BUS1_DATA       equ ATA_BUS1_BASE + 0
-ATA_BUS1_ERR        equ ATA_BUS1_BASE + 1
-ATA_BUS1_FEATURES   equ ATA_BUS1_BASE + 1
-ATA_BUS1_SCOUNT     equ ATA_BUS1_BASE + 2
-ATA_BUS1_LBALOW     equ ATA_BUS1_BASE + 3
-ATA_BUS1_LBAMID     equ ATA_BUS1_BASE + 4
-ATA_BUS1_LBAHI      equ ATA_BUS1_BASE + 5
-ATA_BUS1_DRIVEHEAD  equ ATA_BUS1_BASE + 6
-ATA_BUS1_STATUS     equ ATA_BUS1_BASE + 7
-ATA_BUS1_COMMAND    equ ATA_BUS1_BASE + 7
 
-ATA_BUS2_DATA       equ ATA_BUS2_BASE + 0
-ATA_BUS2_ERR        equ ATA_BUS2_BASE + 1
-ATA_BUS2_FEATURES   equ ATA_BUS2_BASE + 1
-ATA_BUS2_SCOUNT     equ ATA_BUS2_BASE + 2
-ATA_BUS2_LBALOW     equ ATA_BUS2_BASE + 3
-ATA_BUS2_LBAMID     equ ATA_BUS2_BASE + 4
-ATA_BUS2_LBAHI      equ ATA_BUS2_BASE + 5
-ATA_BUS2_DRIVEHEAD  equ ATA_BUS2_BASE + 6
-ATA_BUS2_STATUS     equ ATA_BUS2_BASE + 7
-ATA_BUS2_COMMAND    equ ATA_BUS2_BASE + 7
+ATA_DATA            equ 0
+ATA_ERR             equ 1
+ATA_FEATURES        equ 1
+ATA_SCOUNT          equ 2
+ATA_LBALOW          equ 3
+ATA_LBAMID          equ 4
+ATA_LBAHI           equ 5
+ATA_DRIVEHEAD       equ 6
+ATA_STATUS          equ 7
+ATA_COMMAND         equ 7
+
+ATA_BUS1_DATA       equ ATA_BUS1_BASE + ATA_DATA
+ATA_BUS1_ERR        equ ATA_BUS1_BASE + ATA_ERR
+ATA_BUS1_FEATURES   equ ATA_BUS1_BASE + ATA_FEATURES
+ATA_BUS1_SCOUNT     equ ATA_BUS1_BASE + ATA_SCOUNT
+ATA_BUS1_LBALOW     equ ATA_BUS1_BASE + ATA_LBALOW
+ATA_BUS1_LBAMID     equ ATA_BUS1_BASE + ATA_LBAMID
+ATA_BUS1_LBAHI      equ ATA_BUS1_BASE + ATA_LBAHI
+ATA_BUS1_DRIVEHEAD  equ ATA_BUS1_BASE + ATA_DRIVEHEAD
+ATA_BUS1_STATUS     equ ATA_BUS1_BASE + ATA_STATUS
+ATA_BUS1_COMMAND    equ ATA_BUS1_BASE + ATA_COMMAND
+
+ATA_BUS2_DATA       equ ATA_BUS2_BASE + ATA_DATA
+ATA_BUS2_ERR        equ ATA_BUS2_BASE + ATA_ERR
+ATA_BUS2_FEATURES   equ ATA_BUS2_BASE + ATA_FEATURES
+ATA_BUS2_SCOUNT     equ ATA_BUS2_BASE + ATA_SCOUNT
+ATA_BUS2_LBALOW     equ ATA_BUS2_BASE + ATA_LBALOW
+ATA_BUS2_LBAMID     equ ATA_BUS2_BASE + ATA_LBAMID
+ATA_BUS2_LBAHI      equ ATA_BUS2_BASE + ATA_LBAHI
+ATA_BUS2_DRIVEHEAD  equ ATA_BUS2_BASE + ATA_DRIVEHEAD
+ATA_BUS2_STATUS     equ ATA_BUS2_BASE + ATA_STATUS
+ATA_BUS2_COMMAND    equ ATA_BUS2_BASE + ATA_COMMAND
 
 ATA_BUS1_ALTSTATUS  equ ATA_BUS1_CTRL + 0
 ATA_BUS1_DEVCTRL    equ ATA_BUS1_CTRL + 0
@@ -62,6 +74,8 @@ ata_pio_detect:
     mov ax, 0xa0 ; select master
     call select_drive
     mov ecx, ATA_BUS1_MASTER_STATUS
+    xchg bx, bx
+    mov dx, ATA_BUS1_BASE
     call identify_drive
     mov al, [ATA_BUS1_MASTER_STATUS]
     bt ax, 0
@@ -81,6 +95,7 @@ ata_pio_detect:
     mov ax, 0xb0
     call select_drive
     mov ecx, ATA_BUS1_SLAVE_STATUS
+    mov dx, ATA_BUS1_BASE
     call identify_drive
     mov al, [ATA_BUS1_SLAVE_STATUS]
     bt ax, 0
@@ -97,21 +112,22 @@ ata_pio_detect:
 .bus1_slave_check_end:
     ret
 
+; dx <- ATA BUS base IO addr
 identify_drive:
     mov al, 0x00
-    mov dx, ATA_BUS1_SCOUNT
+    add dx, ATA_SCOUNT
     out dx, al
-    mov dx, ATA_BUS1_LBALOW
+    add dx, ATA_LBALOW-ATA_SCOUNT
     out dx, al
-    mov dx, ATA_BUS1_LBAMID
+    add dx, ATA_LBAMID-ATA_LBALOW
     out dx, al
-    mov dx, ATA_BUS1_LBAHI
+    add dx, ATA_LBAHI-ATA_LBAMID
     out dx, al
-    mov al, 0xec
-    mov dx, ATA_BUS1_COMMAND ; identify drive
+    mov al, 0xec ; ec is the identify command
+    add dx, ATA_COMMAND-ATA_LBAHI
     out dx, al
 
-    mov dx, ATA_BUS1_STATUS
+    ;add dx, ATA_STATUS-ATA_COMMAND ; status is actually same port as command
     in al, dx ; read status
 
     cmp al, 0
@@ -135,7 +151,7 @@ select_drive: ; selects a drive and also waits for bsy and drq to clear
     out dx, al
 
     inc dx ; set dx to the status register
-    times 4 in ax, dx ; ax = the status register
+    times 4 in al, dx ; ax = the status register
 
     xor ecx, ecx
 .hang:
