@@ -37,11 +37,10 @@ _start: ; kernel entry point
     lidt [idt_descriptor]
     call pic_init           ; Set up the PIC
 
+    mov eax, 1
+    int 0x80
+
     call ata_pio_detect
-
-    xchg bx, bx
-
-    ;jmp .hltlp
 
     ; now the GDT is set up, as well as a TSS entry, and also the IDT is set up
     ; ready to go into userspace
