@@ -3,3 +3,4 @@ build
 bx_*.ini
 *.bin
 *.img
+.vscode

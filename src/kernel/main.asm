@@ -19,7 +19,7 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/pic.asm"
 %include "src/drivers/keyboard.asm"
 %include "src/drivers/syscall.asm"
-%include "src/drivers/ata_pio.asm"
+;%include "src/drivers/ata_pio.asm"
 
 _start: ; kernel entry point
     mov esp, stack_top      ; Set up stack
@@ -40,7 +40,7 @@ _start: ; kernel entry point
     mov eax, 1
     int 0x80
 
-    call ata_pio_detect
+    ;call ata_pio_detect
 
     ; now the GDT is set up, as well as a TSS entry, and also the IDT is set up
     ; ready to go into userspace
