@@ -11,6 +11,10 @@ stack_bottom:
     resb 16384
 stack_top:
 
+ring3_stack_bottom:
+    resb 16384
+ring3_stack_top:
+
 section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
 
@@ -37,8 +41,8 @@ _start: ; kernel entry point
     lidt [idt_descriptor]
     call pic_init           ; Set up the PIC
 
-    mov eax, 1
-    int 0x80
+    ;mov eax, 1
+    ;int 0x80
 
     ;call ata_pio_detect
 
@@ -54,7 +58,7 @@ _start: ; kernel entry point
     ; set up call stack for iret
     extern userspace_entry
     push 0x23       ; the data segment again
-    mov eax, esp
+    mov eax, ring3_stack_top
     push eax        ; the stack pointer
     pushf           ; push the EFLAGS register
     push 0x1b       ; user code segment

@@ -17,6 +17,6 @@ SECTIONS
     /* now the uninitialised data */
     .bss BLOCK(4K) : ALIGN(4K)
     {
-        *(.bss) /* just the stack */
+        *(.bss) /* just the stacks */
     }
 }
