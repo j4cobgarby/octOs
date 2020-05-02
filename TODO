@@ -1,3 +1,11 @@
-    1) Implement various exception handlers
-    2) Implement a few syscalls
-    3) 
+DONE:
+ Implement a few syscalls
+ Keyboard input stub
+
+TO DO:
+ Implement processes (scheduling, creation, deletion, etc.)
+ Implement memory management (paging)
+ Exception handlers to kill process if they do bad
+ Write a 'process 0', to initialise everything
+ Get some way of giving keyboard input to processes
+ Write a shell
