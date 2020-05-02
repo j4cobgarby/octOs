@@ -29,7 +29,6 @@ isr_syscall:
     call syscall_console_setcursor
     iret
 .s5:
-    sti
     iret
 
 init_syscall:
@@ -87,6 +86,13 @@ syscall_console_putchar:
     mov dword [console_col], 0
     jmp .end
 .otherwise:
+    cmp dword [console_col], SCREEN_COLS
+    je .eol
+    jmp .skipeol
+.eol:
+    inc dword [console_row]
+    mov dword [console_col], 0
+.skipeol:
     mov ecx, [console_row]
     imul ecx, 80
     add ecx, [console_col]

@@ -30,8 +30,8 @@ pic_init:
     out PIC1_DAT, al
     out PIC2_DAT, al
 
-    ; Set masks to only enable the keyboard
-    mov al, 0xfd
+    ; Set masks to only enable the keyboard and PIT
+    mov al, 11111100b
     out PIC1_DAT, al
     mov al, 0xff
     out PIC2_DAT, al

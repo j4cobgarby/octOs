@@ -1,5 +1,8 @@
 void entry_in_c(void) {
-    asm("xchg %bx, %bx;\
-         mov $5, %eax;\
-         int $0x80;");
+    asm volatile(
+        "mov $0, %%eax;\
+         int $0x80;"
+        :
+        : "b" ("Hello from userspace C\n\0")
+        : "eax");
 }

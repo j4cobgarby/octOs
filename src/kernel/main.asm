@@ -21,6 +21,7 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/gdt.asm"
 %include "src/drivers/idt.asm"
 %include "src/drivers/pic.asm"
+%include "src/drivers/pit.asm"
 %include "src/drivers/keyboard.asm"
 %include "src/drivers/syscall.asm"
 ;%include "src/drivers/ata_pio.asm"
@@ -35,16 +36,18 @@ _start: ; kernel entry point
     call refresh_segments
 
     ; Set up addresses of various IDT descriptors
-    call init_keyboard      ; Put the address of the keyboard ISR
-                            ; into the IDT
+    call init_pit
+    call init_keyboard
     call init_syscall
     lidt [idt_descriptor]
     call pic_init           ; Set up the PIC
 
-    ;mov eax, 1
-    ;int 0x80
-
-    ;call ata_pio_detect
+    ; set up paging
+    ;mov eax, cr0
+    ;or eax, 0x80000001   ; set cr0.pg and cr0.pe
+                        ; i think that cr0.pe would've already been set
+                        ;  by grub, but i'm setting it here just in case
+    ;mov cr0, eax        ; am now using 32bit paging
 
     ; now the GDT is set up, as well as a TSS entry, and also the IDT is set up
     ; ready to go into userspace
