@@ -1,4 +1,4 @@
-# octOs
+** octOs **
 
 I'm making another operating system kernel.
 
@@ -12,17 +12,17 @@ good project to help with learning that. I'm planning on writing the majority
 of the kernel, and maybe even the userland, in assembly, just cause that would
 be really cool, but we'll see.
 
-# Build Instructions 
+* Build Instructions *
 
 You need the following software:
 
-    # REQUIRED
+    REQUIRED
     - An i686 gcc cross-compiler. (e.g. i686-elf-gcc) (to compile C source files for the CPU)
     - grub. (to generate the grub image)
     - nasm. (to assemble the assembly source files)
     - i686-elf-binutils.
     
-    # OPTIONAL
+    OPTIONAL
     - bochs (for emulating the kernel before testing on real hardware)
 
  Once you have all of this software, the build steps are:
@@ -34,3 +34,7 @@ You need the following software:
 And then it should all compile successfully. If you want to emulate it, type `bochs`.
 If you want to try running it on real hardware (not recommended yet), burn octos.iso
 to a USB stick or CD-ROM and tell your BIOS to boot from it.
+
+* Physical memory map *
+
+0x100000 (1MB) - Multiboot header and kernel beginning
