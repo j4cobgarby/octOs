@@ -26,7 +26,13 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/syscall.asm"
 ;%include "src/drivers/ata_pio.asm"
 
+multiboot_flags: times 4 db 0
+
 _start: ; kernel entry point
+    xchg bx, bx
+    ; Before ebx gets overwritten, read multiboot's info
+    mov word eax, [ebx]
+
     mov esp, stack_top      ; Set up stack
     cli     ; Disable interrupts until everything is set up
 
