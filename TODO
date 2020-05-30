@@ -3,6 +3,7 @@ DONE:
  Keyboard input stub
 
 TO DO:
+ Implement basic physical mem manager
  Implement processes (scheduling, creation, deletion, etc.)
  Implement memory management (paging)
  Exception handlers to kill process if they do bad
