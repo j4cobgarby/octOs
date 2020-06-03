@@ -9,7 +9,7 @@ PIC_EOI         equ 0x20    ; byte to send to PIC CMD port to acknowledge end of
 
 SYSCALL_OFSET   equ 0x80
 
-SCREEN_COLOUR   equ 0x07
+SCREEN_COLOUR   equ 0x17
 SCREEN_MIN  equ 0xb8000
 SCREEN_MAX  equ 0xb8fa0
 SCREEN_SIZE equ SCREEN_MAX - SCREEN_MIN
