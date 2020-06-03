@@ -34,7 +34,3 @@ You need the following software:
 And then it should all compile successfully. If you want to emulate it, type `bochs`.
 If you want to try running it on real hardware (not recommended yet), burn octos.iso
 to a USB stick or CD-ROM and tell your BIOS to boot from it.
-
-* Physical memory map *
-
-0x100000 (1MB) - Multiboot header and kernel beginning
