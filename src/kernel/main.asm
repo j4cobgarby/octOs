@@ -26,7 +26,7 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/syscall.asm"
 %include "src/kernel/k_procs.asm"
 
-msg1 db "oct v0.1.1-a", 0
+msg1 db "oct v0.1.2-a", 0
 msg_noflag0 db 10, "Flag 0 not set. Kernel cannot determine memory size.", 0
 msg_memlower db 10, "Amount of lower memory: 0x", 0
 msg_memupper db 10, "Amount of upper memory: 0x", 0
