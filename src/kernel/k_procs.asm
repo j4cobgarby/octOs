@@ -73,7 +73,8 @@ kterm_putchar:
     je .nl
 
     cmp byte [kterm_col], SCREEN_COLS
-    jge .nl
+    jge .nlp
+.print:
     mov ebx, [kterm_row]
     imul ebx, 80
     add ebx, [kterm_col]
@@ -84,8 +85,18 @@ kterm_putchar:
     mov al, 3
     call kterm_movecursor
     jmp .end
+.nlp: ; newline and print
+    mov bl, al
+    mov al, 1
+    call kterm_movecursor
+    mov al, bl
+    mov byte [kterm_col], 0
+    jmp .print
 .nl: ; newline
-    inc byte [kterm_row]
+    mov bl, al
+    mov al, 1
+    call kterm_movecursor
+    mov al, bl
     mov byte [kterm_col], 0
 .end:
     popad
@@ -111,6 +122,11 @@ kterm_movecursor:
     dec byte [kterm_row]
     jmp .end
 .down:
+    cmp byte [kterm_row], (SCREEN_ROWS-1)
+    jne .s1
+    call kterm_scrolldown
+    jmp .end
+.s1:
     inc byte [kterm_row]
     jmp .end
 .left:
@@ -120,5 +136,27 @@ kterm_movecursor:
     inc byte [kterm_col]
     jmp .end
 .end:
+    
+    popad
+    ret
+
+kterm_scrolldown:
+    pushad
+
+    mov eax, (SCREEN_MIN-2)
+.loop:
+    add eax, 2
+    cmp eax, SCREEN_MAX
+    jg .end
+    cmp eax, (SCREEN_MAX - SCREEN_COLS)
+    jg .clear 
+    mov byte bl, [eax + (SCREEN_COLS*2)]
+    mov byte [eax], bl
+    jmp .loop
+.clear:
+    mov byte [eax], 0
+    jmp .loop
+.end:
+    mov byte [kterm_col], 0
     popad
     ret

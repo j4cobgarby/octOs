@@ -2,7 +2,15 @@ isr_keyboard:
     pusha
     cli
 
+    ;call kterm_scrolldown
     in al, 0x60
+    cmp al, 0x1c
+    jne .skip
+    call kterm_scrolldown
+    jmp .end
+.skip:
+    call kterm_puthex
+.end:
 
     mov al, PIC_EOI
     out PIC1_CMD, al
