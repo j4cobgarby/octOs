@@ -32,10 +32,13 @@ msg_memlower db 10, "Amount of lower memory: 0x", 0
 msg_memupper db 10, "Amount of upper memory: 0x", 0
 msg_noflag6 db 10, "Flag 6 not set. Can't determine what memory is available.", 0
 msg_delim db "================", 0
-msg_arrowright db " -> ", 0
+msg_sizeof db " length: ", 0
+msg_start db "start: ",0
 msg_type db " type: ", 0
 msg_available db " (available)", 0
 msg_unavailable db " (reserved)", 0
+msg_kb db "KB",0
+msg_mb db "MB",0
 
 _start: ; kernel entry point
     mov esp, stack_top
@@ -54,18 +57,22 @@ _start: ; kernel entry point
     jmp .hltlp
 .flag0set:
     mov dword ecx, [ebx + 4]
-    mov dword [endofkernel], ecx
+    mov dword [endofkernel], ecx ; amount of lower memory
     mov dword ecx, [ebx + 8]
-    mov dword [endofkernel + 4], ecx
+    mov dword [endofkernel + 4], ecx ; amount of upper memory
 
     mov eax, msg_memlower
     call kterm_putstr
     mov eax, [endofkernel]
     call kterm_puthex
+    mov eax, msg_kb
+    call kterm_putstr
     mov eax, msg_memupper
     call kterm_putstr
     mov eax, [endofkernel + 4]
     call kterm_puthex
+    mov eax, msg_kb
+    call kterm_putstr
 
     bt edx, 6
     jc .flag6set
@@ -86,9 +93,11 @@ _start: ; kernel entry point
 .readmmapentry:
     mov al, 10
     call kterm_putchar
+    mov eax, msg_start
+    call kterm_putstr
     mov dword eax, [ebx+4] ; base
     call kterm_puthex
-    mov eax, msg_arrowright
+    mov eax, msg_sizeof
     call kterm_putstr
     mov dword eax, [ebx+12] ; length
     call kterm_puthex

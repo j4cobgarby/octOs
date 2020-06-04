@@ -8,7 +8,7 @@ isr_keyboard:
     je .scroll
     cmp al, 0x9c
     je .end
-    jmp .skip
+    jmp .skip 
 .scroll:
     call kterm_scrolldown
     jmp .end
