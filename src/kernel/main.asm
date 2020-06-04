@@ -26,9 +26,14 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/syscall.asm"
 %include "src/kernel/k_procs.asm"
 
-msg1 db "oct alpha", 0
-msg2 db 10,"Reading multiboot info at 0x", 0 
-msg3 db 10,"Multiboot info flags: 0x", 0
+msg1 db "oct v0.1.1-a", 0
+msg_noflag0 db 10, "Flag 0 not set. Kernel cannot determine memory size.", 0
+msg_memlower db 10, "Amount of lower memory: 0x", 0
+msg_memupper db 10, "Amount of upper memory: 0x", 0
+msg_noflag6 db 10, "Flag 6 not set. Can't determine what memory is available.", 0
+msg_delim db "================", 0
+msg_arrowright db " -> ", 0
+msg_type db " type: ", 0
 
 _start: ; kernel entry point
     mov esp, stack_top
@@ -37,19 +42,65 @@ _start: ; kernel entry point
     call kterm_clear
     mov eax, msg1
     call kterm_putstr
-    mov eax, msg2
-    call kterm_putstr
-    mov eax, ebx
-    call kterm_puthex
 
     mov dword edx, [ebx]
 
-    mov eax, msg3
+    bt edx, 0 ; flag 0 specifies if mem_lower and mem_upper are valid
+    jc .flag0set
+    mov eax, msg_noflag0
     call kterm_putstr
-    mov eax, edx
+    jmp .hltlp
+.flag0set:
+    mov dword ecx, [ebx + 4]
+    mov dword [endofkernel], ecx
+    mov dword ecx, [ebx + 8]
+    mov dword [endofkernel + 4], ecx
+
+    mov eax, msg_memlower
+    call kterm_putstr
+    mov eax, [endofkernel]
+    call kterm_puthex
+    mov eax, msg_memupper
+    call kterm_putstr
+    mov eax, [endofkernel + 4]
     call kterm_puthex
 
-    bt edx, 0 ; flag 0 specifies if mem_lower and mem_upper are valid
+    bt edx, 6
+    jc .flag6set
+    mov eax, msg_noflag6
+    call kterm_putstr
+    jmp .hltlp
+.flag6set:
+    mov dword eax, [ebx + 44]
+    mov dword [endofkernel + 8], eax ; length of mmap (bytes)
+    mov dword eax, [ebx + 48]
+    mov dword [endofkernel + 12], eax ; address of mmap
+
+    push ebx
+    mov ebx, eax ; ebx = address of mmap
+    mov ecx, eax
+    add dword ecx, [endofkernel + 8]
+
+.readmmapentry:
+    mov al, 10
+    call kterm_putchar
+    mov dword eax, [ebx+4] ; base
+    call kterm_puthex
+    mov eax, msg_arrowright
+    call kterm_putstr
+    mov dword eax, [ebx+12] ; length
+    call kterm_puthex
+    mov eax, msg_type
+    call kterm_putstr
+    mov dword eax, [ebx+20] ; type
+    call kterm_puthex
+
+    add ebx, [ebx]
+    add ebx, 4
+    cmp ebx, ecx
+    jl .readmmapentry
+
+    pop ebx ; ebx is now the address of multiboot info again
 
     call fill_tss_descriptor
     lgdt [gdt_descriptor]
@@ -64,13 +115,6 @@ _start: ; kernel entry point
     call pic_init
 
     jmp .hltlp
-
-    ; set up paging
-    ;mov eax, cr0
-    ;or eax, 0x80000001   ; set cr0.pg and cr0.pe
-                        ; i think that cr0.pe would've already been set
-                        ;  by grub, but i'm setting it here just in case
-    ;mov cr0, eax        ; am now using 32bit paging
 
     ; now the GDT is set up, as well as a TSS entry, and also the IDT is set up
     ; ready to go into userspace
@@ -94,4 +138,4 @@ _start: ; kernel entry point
     jmp .hltlp
 .end:
 
-.endofkernel:
+endofkernel:
