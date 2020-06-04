@@ -34,6 +34,8 @@ msg_noflag6 db 10, "Flag 6 not set. Can't determine what memory is available.", 
 msg_delim db "================", 0
 msg_arrowright db " -> ", 0
 msg_type db " type: ", 0
+msg_available db " (available)", 0
+msg_unavailable db " (reserved)", 0
 
 _start: ; kernel entry point
     mov esp, stack_top
@@ -95,6 +97,15 @@ _start: ; kernel entry point
     mov dword eax, [ebx+20] ; type
     call kterm_puthex
 
+    cmp eax, 0x1
+    jne .rma_s1 ; human readable type
+    mov eax, msg_available ; available ram
+    call kterm_putstr
+    jmp .endloop
+.rma_s1:
+    mov eax, msg_unavailable ; unavailable, could also be acpi or something
+    call kterm_putstr ; but i won't be using that memory
+.endloop:
     add ebx, [ebx]
     add ebx, 4
     cmp ebx, ecx
