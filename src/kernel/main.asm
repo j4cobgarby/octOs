@@ -25,13 +25,13 @@ global _start:function (_start.end - _start)    ; make the object file store the
 %include "src/drivers/keyboard.asm"
 %include "src/drivers/syscall.asm"
 %include "src/kernel/k_procs.asm"
+%include "src/kernel/pmm.asm"
 
 msg1 db "oct v0.1.2-a", 0
-msg_noflag0 db 10, "Flag 0 not set. Kernel cannot determine memory size.", 0
 msg_memlower db 10, "Amount of lower memory: 0x", 0
 msg_memupper db 10, "Amount of upper memory: 0x", 0
+msg_noflag0 db 10, "Flag 0 not set. Kernel cannot determine memory size.", 0
 msg_noflag6 db 10, "Flag 6 not set. Can't determine what memory is available.", 0
-msg_delim db "================", 0
 msg_sizeof db " length: ", 0
 msg_start db "start: ",0
 msg_type db " type: ", 0
@@ -41,6 +41,7 @@ msg_kb db "KB",0
 msg_mb db "MB",0
 
 _start: ; kernel entry point
+    ;warning: don't touch ebx until after pmm_init
     mov esp, stack_top
     cli
 
@@ -48,79 +49,7 @@ _start: ; kernel entry point
     mov eax, msg1
     call kterm_putstr
 
-    mov dword edx, [ebx]
-
-    bt edx, 0 ; flag 0 specifies if mem_lower and mem_upper are valid
-    jc .flag0set
-    mov eax, msg_noflag0
-    call kterm_putstr
-    jmp .hltlp
-.flag0set:
-    mov dword ecx, [ebx + 4]
-    mov dword [endofkernel], ecx ; amount of lower memory
-    mov dword ecx, [ebx + 8]
-    mov dword [endofkernel + 4], ecx ; amount of upper memory
-
-    mov eax, msg_memlower
-    call kterm_putstr
-    mov eax, [endofkernel]
-    call kterm_puthex
-    mov eax, msg_kb
-    call kterm_putstr
-    mov eax, msg_memupper
-    call kterm_putstr
-    mov eax, [endofkernel + 4]
-    call kterm_puthex
-    mov eax, msg_kb
-    call kterm_putstr
-
-    bt edx, 6
-    jc .flag6set
-    mov eax, msg_noflag6
-    call kterm_putstr
-    jmp .hltlp
-.flag6set:
-    mov dword eax, [ebx + 44]
-    mov dword [endofkernel + 8], eax ; length of mmap (bytes)
-    mov dword eax, [ebx + 48]
-    mov dword [endofkernel + 12], eax ; address of mmap
-
-    push ebx
-    mov ebx, eax ; ebx = address of mmap
-    mov ecx, eax
-    add dword ecx, [endofkernel + 8]
-
-.readmmapentry:
-    mov al, 10
-    call kterm_putchar
-    mov eax, msg_start
-    call kterm_putstr
-    mov dword eax, [ebx+4] ; base
-    call kterm_puthex
-    mov eax, msg_sizeof
-    call kterm_putstr
-    mov dword eax, [ebx+12] ; length
-    call kterm_puthex
-    mov eax, msg_type
-    call kterm_putstr
-    mov dword eax, [ebx+20] ; type
-    call kterm_puthex
-
-    cmp eax, 0x1
-    jne .rma_s1 ; human readable type
-    mov eax, msg_available ; available ram
-    call kterm_putstr
-    jmp .endloop
-.rma_s1:
-    mov eax, msg_unavailable ; unavailable, could also be acpi or something
-    call kterm_putstr ; but i won't be using that memory
-.endloop:
-    add ebx, [ebx]
-    add ebx, 4
-    cmp ebx, ecx
-    jl .readmmapentry
-
-    pop ebx ; ebx is now the address of multiboot info again
+    call pmm_init
 
     call fill_tss_descriptor
     lgdt [gdt_descriptor]
@@ -134,7 +63,8 @@ _start: ; kernel entry point
     lidt [idt_descriptor]
     call pic_init
 
-    jmp .hltlp
+    jmp hltlp
+.end:
 
     ; now the GDT is set up, as well as a TSS entry, and also the IDT is set up
     ; ready to go into userspace
@@ -154,8 +84,14 @@ _start: ; kernel entry point
     ; push 0x1b       ; user code segment
     ; push userspace_entry
     ; iret            ; "return" to the userland
-.hltlp: hlt
-    jmp .hltlp
-.end:
+hltlp: hlt
+    jmp hltlp
 
-endofkernel:
+pmm_memlowersize dd 0
+pmm_memuppersize dd 0
+pmm_mmaplength dd 0
+pmm_mmapaddress dd 0
+pmm_amountblocks dd 0
+pmm_bitmapbytes dd 0 ; amount of bytes needed to represent the bitmap
+pmm_bitmap: ; the beginning of the physical memory manager's bitmap
+            ; each bit will represent a page in memory, of size PMM_BLOCKSIZE
