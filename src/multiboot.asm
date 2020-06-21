@@ -1,7 +1,4 @@
-MB_FLAGS        equ 1<<0 | 1<<1 | 1<<2 ; 0x1: all boot modules aligned on 4KB boundaries, even 
-                                        ;   though i don't think i'll need to use this
-                                        ; 0x10: memory information available
-                                        ; 0x100: means i can set parameters about the video output
+MB_FLAGS        equ 0b111
 MB_MAGICNUMBER  equ 0x1BADB002
 MB_CHKSUM       equ -(MB_FLAGS + MB_MAGICNUMBER)
 MB_MODETYPE     equ 1 ; textmode

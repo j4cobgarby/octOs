@@ -1,5 +1,4 @@
 %include "src/multiboot.asm"
-%include "src/common.asm"
 
 section .bss
 align 16
@@ -18,6 +17,9 @@ ring3_stack_top:
 section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
 
+_kernel_start:
+
+%include "src/common.asm"
 %include "src/drivers/gdt.asm"
 %include "src/drivers/idt.asm"
 %include "src/drivers/pic.asm"
@@ -30,6 +32,7 @@ global _start:function (_start.end - _start)    ; make the object file store the
 msg1 db "oct v0.1.2-a", 0
 msg_memlower db 10, "Amount of lower memory: 0x", 0
 msg_memupper db 10, "Amount of upper memory: 0x", 0
+msg_ksize db 10, "Kernel size: 0x", 0
 msg_noflag0 db 10, "Flag 0 not set. Kernel cannot determine memory size.", 0
 msg_noflag6 db 10, "Flag 6 not set. Can't determine what memory is available.", 0
 msg_sizeof db " length: ", 0
@@ -37,8 +40,8 @@ msg_start db "start: ",0
 msg_type db " type: ", 0
 msg_available db " (available)", 0
 msg_unavailable db " (reserved)", 0
-msg_kb db "KB",0
-msg_mb db "MB",0
+msg_kb db "K",0
+msg_mb db "M",0
 
 _start: ; kernel entry point
     ;warning: don't touch ebx until after pmm_init
@@ -93,5 +96,6 @@ pmm_mmaplength dd 0
 pmm_mmapaddress dd 0
 pmm_amountblocks dd 0
 pmm_bitmapbytes dd 0 ; amount of bytes needed to represent the bitmap
+_kernel_end:
 pmm_bitmap: ; the beginning of the physical memory manager's bitmap
             ; each bit will represent a page in memory, of size PMM_BLOCKSIZE

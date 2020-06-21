@@ -11,24 +11,21 @@ pmm_init:
     jmp hltlp
 .flag0set:
     mov dword ecx, [ebx + 4]
+    shl ecx, 10 ; bootloader told me size in KB, i want it in bytes
     mov dword [pmm_memlowersize], ecx ; amount of lower memory
     mov dword ecx, [ebx + 8]
+    shl ecx, 10
     mov dword [pmm_memuppersize], ecx ; amount of upper memory
 
     mov eax, msg_memlower
     call kterm_putstr
     mov eax, [pmm_memlowersize]
     call kterm_puthex
-    mov eax, msg_kb
-    call kterm_putstr
     mov eax, msg_memupper
     call kterm_putstr
     mov eax, [pmm_memuppersize]
     call kterm_puthex
-    mov eax, msg_kb
-    call kterm_putstr
 
-    xchg bx, bx
     ; now kernel knows how much memory there is in the system
     ; work out how many blocks needed
     mov eax, [pmm_memuppersize]
@@ -47,12 +44,32 @@ pmm_init:
     jg .endbitmaploop
     jmp .bitmaploop
 .endbitmaploop:
+    mov byte [ecx], 'E'
     ; now i can set all blocks which are not available to 1
     ; these are ones which:
     ; - are set as not available in the mmap
     ; - kernel code
+    ; - the pmm bitmap
+    ; to find the index of a page, given a physical address,
+    ; bit shift the address right by PMM_BLOCKSIZE_EXP.
 
-    bt edx, 6
+    mov eax, msg_ksize
+    call kterm_putstr
+    mov eax, (_kernel_end - _kernel_start)
+    call kterm_puthex
+    mov eax, _kernel_start
+    shr eax, PMM_BLOCKSIZE_EXP
+    mov ecx, _kernel_end
+    shr ecx, PMM_BLOCKSIZE_EXP
+.l1:
+    cmp eax, ecx
+    jg .l1end
+    call pmm_set
+    inc eax
+    jmp .l1
+.l1end:
+
+    bt edx, 6 ; check if memory map is present
     jc .flag6set
     mov eax, msg_noflag6
     call kterm_putstr
@@ -95,10 +112,38 @@ pmm_init:
     jl .readmmapentry
 
     pop ebx
-
     ret
 
 ; inputs:
 ;  eax = bit number
 pmm_set:
+    pushad
+    mov ecx, eax
+    shr eax, 3 ; eax = byte number
+    and ecx, 0b111 ; ecx = bit number in byte
+    mov bl, 0b1
+    shl bl, cl
+    or byte [eax + pmm_bitmap], bl
+    popad
+    ret
+
+; inputs:
+;  eax = bit number
+pmm_unset:
+    pushad
+    mov ecx, eax
+    shr eax, 3
+    and ecx, 0b111
+    mov bl, 0b1
+    shl bl, cl
+    not bl
+    and byte [eax + pmm_bitmap], bl
+    popad
+    ret
+
+; inputs:
+;  eax = bit number
+; outputs:
+;  eax = 0 if bit is set else >0
+pmm_test:
     ret
