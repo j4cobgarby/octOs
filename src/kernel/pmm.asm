@@ -146,4 +146,41 @@ pmm_unset:
 ; outputs:
 ;  eax = 0 if bit is set else >0
 pmm_test:
+    push ebx
+    mov byte bl, [eax + pmm_bitmap]
+    and eax, 0b111
+    bt bx, ax
+    jc .set
+    mov eax, 0
+    jmp .end
+.set:
+    mov eax, 1
+.end:
+    pop ebx
+    ret
+
+; outputs:
+;  eax = index of first free page in memory
+pmm_firstfree:
+    push ebx
+    push ecx
+    xor eax, eax
+.loop1:
+    cmp byte [eax + pmm_bitmap], 0xff
+    jne .end_loop1
+    inc eax
+    jmp .loop1
+.end_loop1:
+    mov bx, 0
+    mov byte cl, [eax + pmm_bitmap]
+.loop2:
+    bt cl, bx
+    jnc .end_loop2
+    inc bx
+    jmp .loop2
+.end_loop2:
+    shl eax, 3 ; bytes -> bits
+    add eax, bx
+    pop ecx
+    pop ebx
     ret
