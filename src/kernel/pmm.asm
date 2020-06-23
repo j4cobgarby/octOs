@@ -171,16 +171,16 @@ pmm_firstfree:
     inc eax
     jmp .loop1
 .end_loop1:
-    mov bx, 0
+    xor ebx, ebx
     mov byte cl, [eax + pmm_bitmap]
 .loop2:
-    bt cl, bx
+    bt cx, bx
     jnc .end_loop2
     inc bx
     jmp .loop2
 .end_loop2:
     shl eax, 3 ; bytes -> bits
-    add eax, bx
+    add eax, ebx
     pop ecx
     pop ebx
     ret
