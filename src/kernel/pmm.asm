@@ -2,6 +2,7 @@ PMM_BLOCKSIZE equ 4096
 PMM_BLOCKSIZE_EXP equ 12 ; 2^PMM_BLOCKSIZE_EXP = PMM_BLOCKSIZE
 
 pmm_init:
+    ; store the multiboot info in edx
     mov dword edx, [ebx]
 
     bt edx, 0 ; flag 0 specifies if mem_lower and mem_upper are valid
@@ -10,6 +11,7 @@ pmm_init:
     call kterm_putstr
     jmp hltlp
 .flag0set:
+    ; refer to multiboot specification
     mov dword ecx, [ebx + 4]
     shl ecx, 10 ; bootloader told me size in KB, i want it in bytes
     mov dword [pmm_memlowersize], ecx ; amount of lower memory
@@ -17,6 +19,7 @@ pmm_init:
     shl ecx, 10
     mov dword [pmm_memuppersize], ecx ; amount of upper memory
 
+    ; tell the user how much memory there is
     mov eax, msg_memlower
     call kterm_putstr
     mov eax, [pmm_memlowersize]
@@ -30,10 +33,11 @@ pmm_init:
     ; work out how many blocks needed
     mov eax, [pmm_memuppersize]
     add eax, 0x100000 ; add the 1M representing the lower memory's range
-    shr eax, PMM_BLOCKSIZE_EXP
+    shr eax, PMM_BLOCKSIZE_EXP ; divide the amount of bytes of memory by the amount of bytes per block
     mov dword [pmm_amountblocks], eax
     shr eax, 3 ; divide by 8, to get amount of bytes needed
     ; create the bitmap to represent all blocks
+    mov dword [pmm_bitmapbytes], eax
     mov ecx, pmm_bitmap
     add eax, ecx
     ; all memory from [ecx] to [eax] should be intialised as 0
@@ -44,7 +48,8 @@ pmm_init:
     jg .endbitmaploop
     jmp .bitmaploop
 .endbitmaploop:
-    mov byte [ecx], 'E'
+    mov byte [ecx], 'E' ; this is a marker to see where the bitmap ends while manually
+                        ; looking at memory.
     ; now i can set all blocks which are not available to 1
     ; these are ones which:
     ; - are set as not available in the mmap
@@ -53,6 +58,7 @@ pmm_init:
     ; to find the index of a page, given a physical address,
     ; bit shift the address right by PMM_BLOCKSIZE_EXP.
 
+    ; kernel code
     mov eax, msg_ksize
     call kterm_putstr
     mov eax, (_kernel_end - _kernel_start)
@@ -68,6 +74,20 @@ pmm_init:
     inc eax
     jmp .l1
 .l1end:
+
+    ; the bitmap
+    mov eax, pmm_bitmap
+    shr eax, PMM_BLOCKSIZE_EXP
+    mov ecx, pmm_bitmap
+    add dword ecx, [pmm_bitmapbytes]
+    shr ecx, PMM_BLOCKSIZE_EXP
+.l2:
+    cmp eax, ecx
+    jg .l2end
+    call pmm_set
+    inc eax
+    jmp .l2
+.l2end:
 
     bt edx, 6 ; check if memory map is present
     jc .flag6set
@@ -98,13 +118,36 @@ pmm_init:
     call kterm_puthex
     mov dword eax, [ebx+20] ; type
     cmp eax, 0x1
-    jne .rma_s1 ; human readable type
-    mov eax, msg_available ; available ram
+    je .availablemem
+    cmp eax, 0x3
+    je .acpimem
+    cmp eax, 0x4
+    je .hibernatemem
+    cmp eax, 0x5
+    je .defectivemem
+    jmp .unavailablemem
+
+.availablemem:
+    mov eax, msg_available
     call kterm_putstr
     jmp .endloop
-.rma_s1:
-    mov eax, msg_unavailable ; unavailable, could also be acpi or something
-    call kterm_putstr ; but i won't be using that memory
+.acpimem:
+    mov eax, msg_acpi
+    call kterm_putstr
+    jmp .endloop
+.hibernatemem:
+    mov eax, msg_hibernatemem
+    call kterm_putstr
+    jmp .endloop
+.defectivemem:
+    mov eax, msg_defectivemem
+    call kterm_putstr
+    jmp .endloop
+.unavailablemem:
+    mov eax, msg_unavailable
+    call kterm_putstr
+    jmp .endloop
+
 .endloop:
     add ebx, [ebx]
     add ebx, 4
@@ -184,3 +227,28 @@ pmm_firstfree:
     pop ecx
     pop ebx
     ret
+
+; inputs:
+;  eax = base page index
+;  ebx = amount of pages
+pmm_setregion:
+.l:
+    cmp ebx, 0
+    je .end
+    dec ebx
+
+    call pmm_set
+    inc eax
+    jmp .l
+.end:
+
+pmm_unsetregion:
+.l:
+    cmp ebx, 0
+    je .end
+    dec ebx
+
+    call pmm_unset
+    inc eax
+    jmp .l
+.end:

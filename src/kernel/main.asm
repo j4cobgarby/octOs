@@ -7,11 +7,11 @@ align 16
 ;; "16384 uninitialised bytes here", rather than actually list
 ;; that many bytes out in the object file!
 stack_bottom:
-    resb 16384
+    resb 8192
 stack_top:
 
 ring3_stack_bottom:
-    resb 16384
+    resb 8192
 ring3_stack_top:
 
 section .text   ; now the actual kernel entry point is in this section
@@ -39,6 +39,9 @@ msg_sizeof db " length: ", 0
 msg_start db "start: ",0
 msg_type db " type: ", 0
 msg_available db " (available)", 0
+msg_acpi db " (acpi info)", 0
+msg_hibernatemem db " (presvd. on hibernate)", 0
+msg_defectivemem db " (defective memory)", 0
 msg_unavailable db " (reserved)", 0
 msg_kb db "K",0
 msg_mb db "M",0
@@ -89,6 +92,9 @@ _start: ; kernel entry point
     ; iret            ; "return" to the userland
 hltlp: hlt
     jmp hltlp
+
+ptable_base dd 0    ; base address of process table
+ptable_processes dw 0 ; amount of entries in process table
 
 pmm_memlowersize dd 0
 pmm_memuppersize dd 0
