@@ -28,7 +28,7 @@ typedef struct {
     uint8_t state; // PSTATE_xxxx
     uint16_t pid;
     uint16_t parent_pid;
-    int8_t priority;
+    uint8_t priority;
 } ptable_entry_t;
 
 #endif

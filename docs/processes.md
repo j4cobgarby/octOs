@@ -14,9 +14,20 @@ The process table is an area of memory which stores a process table entry struct
 The process table is pointed to by the memory variable `ptable_base`, and the amount of processes is in
 `ptable_processes`. A process table entry looks like this:
 
-| offset (bytes) | value |
-| --- | --- |
-| 0 | eax |
-| 4 | ebx |
-| 8 | ecx |
-| 12 | edx |
+| Offset (Bytes) | Value | Notes |
+| --- | --- | --- |
+| 0 | eax | |
+| 4 | ebx | |
+| 8 | ecx | |
+| 12 | edx | |
+| 16 | cs | |
+| 18 | ss | |
+| 20 | ds | |
+| 22 | ss | |
+| 24 | eip | |
+| 28 | esp | |
+| 32 | ebp | |
+| 36 | state | 0 = blocked, 1 = runnable, 2 = running |
+| 37 | pid | ID used to refer to the process |
+| 39 | parent pid | Parent process |
+| 41 | priority | Represents importance of process, in scheduling |
