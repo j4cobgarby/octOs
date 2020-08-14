@@ -10,7 +10,7 @@ SECTIONS
      * that grub finds it */
     .text BLOCK(4K) : ALIGN(4K)
     {
-        *(.multiboot)   /* first the multiboot header */
+        *(.multiboot_header)   /* first the multiboot header */
         *(.text)        /* now the actual entry code */
     }
 

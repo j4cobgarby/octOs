@@ -1,7 +1,7 @@
 PMM_BLOCKSIZE equ 4096
 PMM_BLOCKSIZE_EXP equ 12 ; 2^PMM_BLOCKSIZE_EXP = PMM_BLOCKSIZE
 
-pmm_init:
+pmm_init_asm:
     ; store the multiboot info in edx
     mov dword edx, [ebx]
 

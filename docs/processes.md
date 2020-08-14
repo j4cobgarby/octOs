@@ -16,18 +16,21 @@ The process table is pointed to by the memory variable `ptable_base`, and the am
 
 | Offset (Bytes) | Value | Notes |
 | --- | --- | --- |
-| 0 | eax | |
-| 4 | ebx | |
-| 8 | ecx | |
-| 12 | edx | |
-| 16 | cs | |
-| 18 | ss | |
-| 20 | ds | |
-| 22 | ss | |
-| 24 | eip | |
-| 28 | esp | |
-| 32 | ebp | |
-| 36 | state | 0 = blocked, 1 = runnable, 2 = running |
-| 37 | pid | ID used to refer to the process |
-| 39 | parent pid | Parent process |
-| 41 | priority | Represents importance of process, in scheduling |
+| 0 | eax (4 bytes) | |
+| 4 | ebx (4 bytes) | |
+| 8 | ecx (4 bytes)| |
+| 12 | edx (4 bytes) | |
+| 16 | cs (2 bytes) | |
+| 18 | ss (2 bytes) | |
+| 20 | ds (2 bytes) | |
+| 22 | ss (2 bytes) | |
+| 24 | eip (4 bytes) | |
+| 28 | esp (4 bytes) | |
+| 32 | ebp (4 bytes) | |
+| 36 | state (1 byte) | 0 = blocked, 1 = runnable, 2 = running |
+| 37 | pid (2 bytes) | ID used to refer to the process |
+| 39 | parent pid (2 bytes) | Parent process |
+| 41 | priority (1 byte) | Represents importance of process, in scheduling |
+
+This table is used to store information about all processes, including the value of all registers in that process,
+and information to do with the scheduling algorithm.

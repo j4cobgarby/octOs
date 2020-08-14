@@ -14,8 +14,13 @@ ring3_stack_bottom:
     resb 8192
 ring3_stack_top:
 
+pmm_bitmap: ; the beginning of the physical memory manager's bitmap
+            ; each bit will represent a page in memory, of size PMM_BLOCKSIZE
+
 section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
+global _kernel_start
+global _kernel_end
 
 _kernel_start:
 
@@ -27,9 +32,8 @@ _kernel_start:
 %include "src/drivers/keyboard.asm"
 %include "src/drivers/syscall.asm"
 %include "src/kernel/k_procs.asm"
-%include "src/kernel/pmm.asm"
 
-msg1 db "oct v0.1.2-a", 0
+msg1 db "oct v0.1.2-a",10,0
 msg_memlower db 10, "Amount of lower memory: 0x", 0
 msg_memupper db 10, "Amount of upper memory: 0x", 0
 msg_ksize db 10, "Kernel size: 0x", 0
@@ -46,16 +50,29 @@ msg_unavailable db " (reserved)", 0
 msg_kb db "K",0
 msg_mb db "M",0
 
+extern pmm_init
+extern kio_puts
+extern kio_puts_attr
+extern kio_init
+
 _start: ; kernel entry point
     ;warning: don't touch ebx until after pmm_init
     mov esp, stack_top
     cli
 
     call kterm_clear
-    mov eax, msg1
-    call kterm_putstr
 
+    call kio_init
+
+    push byte 0x1e
+    push dword msg1
+    call kio_puts_attr
+    add esp, 5
+
+    push dword pmm_bitmap
+    push dword ebp
     call pmm_init
+    add esp, 8
 
     call fill_tss_descriptor
     lgdt [gdt_descriptor]
@@ -93,7 +110,8 @@ _start: ; kernel entry point
 hltlp: hlt
     jmp hltlp
 
-ptable_base dd 0    ; base address of process table
+ptable_base dd 0      ; base address of process table
+ptable_pages db 0     ; amount of pages used to store the ptable
 ptable_processes dw 0 ; amount of entries in process table
 
 pmm_memlowersize dd 0
@@ -103,5 +121,3 @@ pmm_mmapaddress dd 0
 pmm_amountblocks dd 0
 pmm_bitmapbytes dd 0 ; amount of bytes needed to represent the bitmap
 _kernel_end:
-pmm_bitmap: ; the beginning of the physical memory manager's bitmap
-            ; each bit will represent a page in memory, of size PMM_BLOCKSIZE
