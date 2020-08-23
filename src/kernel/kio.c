@@ -92,12 +92,13 @@ void kio_updatecurs(void) {
 }
 
 uint16_t kio_getcurspos(void) {
-    uint16_t ret = 0;
-    
     outb(0x3d4, 0x0f);
-    ret |= inb(0x3d5);
-    outb(0x3d4, 0x0e);
-    ret |= ((uint16_t)inb(0x3d5)) << 8;
-
-    return ret;
+    outb(0x3d4, 0x0f);
+    outb(0x3d4, 0x0f);
+    outb(0x3d4, 0x0f);
+    outb(0x3d4, 0x0f);
+    outb(0x3d4, 0x0f);
+    outb(0x3d4, 0x0f);
+    outb(0x3d4, 0x0f);
+    return 0;    
 }
