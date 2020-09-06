@@ -5,6 +5,8 @@
 
 #define PMM_BLOCKSIZE 4096
 
+#define ADDR_BLOCK(addr) addr >> 12
+
 extern void _kernel_start(void);
 extern void _kernel_end(void);
 

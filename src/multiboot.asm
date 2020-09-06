@@ -7,7 +7,7 @@ MB_HEIGHT       equ 24
 
 MB_DEPTH        equ 0
 
-section .multiboot_header:
+section .multiboot_header
 align 4
 multiboot_start:
     dd MB_MAGICNUMBER
