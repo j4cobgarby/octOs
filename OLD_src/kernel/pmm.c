@@ -13,8 +13,6 @@ void pmm_init(uint32_t* mboot_info, uint8_t* bitmap) {
 
     kio_puts("Line1\n");
     
-    
-    
     kio_puts("Line5\n");
     kio_puts("Line6\n");
     //kio_puts("Kernel: ");
