@@ -15,6 +15,15 @@ void kio_init(void) {
     outb(0x3d5, (inb(0x3d5) & 0xe0) | 15);
 }
 
+kio_cls(void) {
+    for (uint8_t row = 0; row < KIO_ROWS; row++) {
+        for (uint8_t col = 0; col < KIO_COLS; col++) {
+            KIO_SETCHARAT(row, col, ' ');
+            KIO_SETATTRAT(row, col, KIO_DEFAULT_ATTR);
+        }
+    }
+}
+
 void kio_puts(const char* s) {
     kio_puts_attr(s, KIO_DEFAULT_ATTR);
 }

@@ -23,6 +23,7 @@ extern uint16_t kio_col;
 extern const char* kio_hexdigits;
 
 void kio_init(void);
+void kio_cls(void); // Clear screen
 void kio_puts(const char* s); // Print null-terminated string s to screen
 void kio_puts_attr(const char* s, const char attr); // puts with attribute
 void kio_putc(const char c); // Print char c to screen
