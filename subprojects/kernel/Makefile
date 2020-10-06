@@ -1,7 +1,7 @@
 CC = i686-elf-gcc
 ASM = nasm
 CFLAGS = -Wall -Wextra -ffreestanding -I include
-ASMFLAGS = -felf32
+ASMFLAGS = -felf32 -i src/arch/i386/
 
 OBJS = kio.c.o \
 pmm.c.o \
@@ -17,14 +17,14 @@ clean:
 	rm -rf ../../build
 
 octos.iso: $(OBJS)
-	echo $(OBJS)
-	cp -r ../../static/ ../../build
-	$(CC) -T src/arch/i386/linker.ld -o ../../build/iso/octos.bin -ffreestanding -nostdlib $^ -lgcc
-	grub-mkrescue -o ../../build/octos.iso ../../build/iso
+	cd ../../build && \
+	cp -r ../static/iso . && \
+	$(CC) -T ../subprojects/kernel/src/arch/i386/linker.ld -o iso/octos.bin -ffreestanding -nostdlib $^ -lgcc && \
+	grub-mkrescue -o octos.iso iso
 
 %.c.o: src/arch/i386/%.c
 	mkdir -p ../../build
 	$(CC) -c -o ../../build/$@ $< $(CFLAGS) -T src/arch/i386/linker.ld
 
 %.asm.o: src/arch/i386/%.asm
-	$(ASM) $(ASMFLAGS) $< -o $@
+	$(ASM) $(ASMFLAGS) $< -o ../../build/$@

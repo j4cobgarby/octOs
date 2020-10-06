@@ -1,4 +1,4 @@
-%include "src/multiboot.asm"
+%include "multiboot.asm"
 
 section .bss
 align 16
