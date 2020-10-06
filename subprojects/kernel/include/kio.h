@@ -14,6 +14,8 @@
 #define KIO_DIRECTION_RIGHT 0b1000
 #define KIO_DEFAULT_ATTR    0x17
 
+#define KIO_SETCHARAT(row, col, c) *(char*)(KIO_VMEM + 2 * (KIO_COLS * row + col)) = c;
+#define KIO_SETATTRAT(row, col, a) *(char*)(1 + KIO_VMEM + 2 * (KIO_COLS * row + col)) = a;
 #define KIO_SETCHAR(c) *(char*)(KIO_VMEM + 2 * (KIO_COLS * kio_row + kio_col)) = c;
 #define KIO_SETATTR(a) *(char*)(1 + KIO_VMEM + 2 * (KIO_COLS * kio_row + kio_col)) = a;
 

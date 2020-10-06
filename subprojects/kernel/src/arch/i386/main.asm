@@ -1,4 +1,4 @@
-%include "src/multiboot.asm"
+%include "src/arch/i386/multiboot.asm"
 
 section .bss
 align 16
@@ -24,14 +24,13 @@ global _kernel_end
 
 _kernel_start:
 
-%include "src/common.asm"
-%include "src/drivers/gdt.asm"
-%include "src/drivers/idt.asm"
-%include "src/drivers/pic.asm"
-%include "src/drivers/pit.asm"
-%include "src/drivers/keyboard.asm"
-%include "src/drivers/syscall.asm"
-%include "src/kernel/k_procs.asm"
+%include "src/arch/i386/common.asm"
+%include "src/arch/i386/gdt.asm"
+%include "src/arch/i386/idt.asm"
+%include "src/arch/i386/pic.asm"
+%include "src/arch/i386/pit.asm"
+%include "src/arch/i386/keyboard.asm"
+%include "src/arch/i386/syscall.asm"
 
 msg1 db "oct v0.1.2-a",10,0
 msg_memlower db 10, "Amount of lower memory: 0x", 0
@@ -54,14 +53,14 @@ extern pmm_init
 extern kio_puts
 extern kio_puts_attr
 extern kio_init
+extern kio_cls
 
 _start: ; kernel entry point
     ;warning: don't touch ebx until after pmm_init
     mov esp, stack_top
     cli
 
-    call kterm_clear
-
+    call kio_cls
     call kio_init
 
     push byte 0x1e

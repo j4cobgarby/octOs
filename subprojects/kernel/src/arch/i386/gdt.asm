@@ -40,7 +40,7 @@ gdt_length equ $ - gdt_start - 1
 gdt_descriptor  dw gdt_length   ; the length of the gdt
                 dd gdt_start   ; the address of the gdt (both to be loaded in from C)
 
-%include "src/drivers/tss.asm"
+%include "src/arch/i386/tss.asm"
 
 fill_tss_descriptor:
     mov dword [tss_entry + 4], stack_top  ; whenever ring 0 is entered (for a syscall or whatever), the handler needs a stack
