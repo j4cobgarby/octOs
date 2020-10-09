@@ -11,10 +11,6 @@ void pmm_init(uint32_t* mboot_info, uint8_t* bitmap) {
     uint32_t entry_length;
     uint32_t entry_type;
 
-    kio_puts("Line1\n");
-    
-    kio_puts("Line5\n");
-    kio_puts("Line6\n");
     //kio_puts("Kernel: ");
     //kio_puthex((uint32_t)(&_kernel_start));
     //kio_puts(" -> ");
@@ -38,12 +34,8 @@ void pmm_init(uint32_t* mboot_info, uint8_t* bitmap) {
         bitmap[block] = 1;
     }
 
-    //kio_puts("Test...\n");
-    kio_puts("Line2\n");
-
     if ((*mboot_info) & 0x20) {
         //kio_puts("Reading memory map...\n");
-        kio_puts("Line3\n");
 
         mmap_length = mboot_info[11];
         mmap_addr = mboot_info[12];
@@ -61,7 +53,6 @@ void pmm_init(uint32_t* mboot_info, uint8_t* bitmap) {
             mmap_entry_start += entry_size;
         }
     } else {
-        kio_puts("Line4\n");
         //kio_puts("\nMemory map not present in multiboot info...");
     }
 }

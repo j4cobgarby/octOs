@@ -8,7 +8,7 @@ pmm.c.o \
 asm_procs.c.o \
 main.asm.o \
 
-all: octos.iso
+all: octos.img
 
 test:
 	echo $(BUILDDIR)
@@ -16,10 +16,14 @@ test:
 clean:
 	rm -rf ../../build
 
+octos.img: octos.iso
+	cd ../../build && \
+	bximage -mode=resize -hd=483M -imgmode=flat -q octos.iso octos.img
+
 octos.iso: $(OBJS)
 	cd ../../build && \
 	cp -r ../static/iso . && \
-	$(CC) -T ../subprojects/kernel/src/arch/i386/linker.ld -o iso/octos.bin -ffreestanding -nostdlib $^ -lgcc && \
+	$(CC) -T ../subprojects/kernel/src/arch/i386/linker.ld -o iso/boot/octos.bin -ffreestanding -nostdlib $^ -lgcc && \
 	grub-mkrescue -o octos.iso iso
 
 %.c.o: src/arch/i386/%.c
