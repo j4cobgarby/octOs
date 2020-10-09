@@ -1,4 +1,5 @@
-BUILDDIR = build
+all:
+	cd subprojects/kernel && make
 
-test:
-	cd subprojects/kernel && make test
+clean:
+	cd subprojects/kernel && make clean

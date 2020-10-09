@@ -17,6 +17,9 @@ ring3_stack_top:
 pmm_bitmap: ; the beginning of the physical memory manager's bitmap
             ; each bit will represent a page in memory, of size PMM_BLOCKSIZE
 
+section .data
+msg1 db "Welcome to oct",10,0
+
 section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
 global _kernel_start
@@ -31,23 +34,6 @@ _kernel_start:
 %include "src/arch/i386/pit.asm"
 %include "src/arch/i386/keyboard.asm"
 %include "src/arch/i386/syscall.asm"
-
-msg1 db "oct v0.1.2-a",10,0
-msg_memlower db 10, "Amount of lower memory: 0x", 0
-msg_memupper db 10, "Amount of upper memory: 0x", 0
-msg_ksize db 10, "Kernel size: 0x", 0
-msg_noflag0 db 10, "Flag 0 not set. Kernel cannot determine memory size.", 0
-msg_noflag6 db 10, "Flag 6 not set. Can't determine what memory is available.", 0
-msg_sizeof db " length: ", 0
-msg_start db "start: ",0
-msg_type db " type: ", 0
-msg_available db " (available)", 0
-msg_acpi db " (acpi info)", 0
-msg_hibernatemem db " (presvd. on hibernate)", 0
-msg_defectivemem db " (defective memory)", 0
-msg_unavailable db " (reserved)", 0
-msg_kb db "K",0
-msg_mb db "M",0
 
 extern pmm_init
 extern kio_puts
