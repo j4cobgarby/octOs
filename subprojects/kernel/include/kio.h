@@ -33,7 +33,7 @@ void kio_putc_attr(const char c, const char attr); // putc with attribute
 void kio_puthex(uint32_t n); // Print n to screen, represented as hex
 void kio_putbin(uint32_t n); // Print n to screen, represented as binary
 void kio_putdec(uint32_t n); // Print n to screen, represented as decimal
-void kio_move(const uint8_t dir); // Move the current place to write text
+void kio_move(const uint8_t dir); // Move the cursor. dir is 0 or more KIO_DIRECTION's or'd together.
 void kio_setcurspos(uint16_t col, uint16_t row); // Set the visual cursor's position
 void kio_updatecurs(void);
 uint16_t kio_getcurspos(void);

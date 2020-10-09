@@ -54,8 +54,9 @@ _start: ; kernel entry point
     call kio_puts_attr
     add esp, 5
 
+    xchg bx, bx
     push dword pmm_bitmap
-    push dword ebp
+    push dword ebx
     call pmm_init
     add esp, 8
 
