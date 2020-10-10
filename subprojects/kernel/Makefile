@@ -1,6 +1,6 @@
 CC = i686-elf-gcc
 ASM = nasm
-CFLAGS = -Wall -Wextra -ffreestanding -I include
+CFLAGS = -Wall -Wextra -ffreestanding -I include -DKERNEL_DEBUG
 ASMFLAGS = -felf32 -i src/arch/i386/
 
 OBJS = kio.c.o \
