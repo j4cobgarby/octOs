@@ -13,6 +13,8 @@
 #define KIO_DIRECTION_LEFT  0b0100
 #define KIO_DIRECTION_RIGHT 0b1000
 #define KIO_DEFAULT_ATTR    0x17
+#define KIO_SCROLL_UP       1
+#define KIO_SCROLL_DOWN     0
 
 #define KIO_SETCHARAT(row, col, c) *(char*)(KIO_VMEM + 2 * (KIO_COLS * row + col)) = c;
 #define KIO_SETATTRAT(row, col, a) *(char*)(1 + KIO_VMEM + 2 * (KIO_COLS * row + col)) = a;
@@ -26,6 +28,7 @@ extern const char* kio_hexdigits;
 
 void kio_init(void);
 void kio_cls(void); // Clear screen
+void kio_scroll(int dir); // KIO_SCROLL_UP or KIO_SCROLL_DOWN
 void kio_puts(const char* s); // Print null-terminated string s to screen
 void kio_puts_attr(const char* s, const char attr); // puts with attribute
 void kio_putc(const char c); // Print char c to screen

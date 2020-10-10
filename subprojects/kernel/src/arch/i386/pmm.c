@@ -54,18 +54,33 @@ void pmm_init(uint32_t* mboot_info, uint8_t* bitmap) {
         kio_puts("   Mmap length: ");
         kio_puthex(mmap_length);
         kio_putc('\n');
-
+    /*
         mmap_entry_start = (uint32_t*)mmap_addr;
 
         while ((uint32_t)mmap_entry_start < mmap_addr + mmap_length) {
             kio_puts("====== memory map entry ======\n");
             entry_size = *(mmap_entry_start);
-            entry_base = *(mmap_entry_start + 4);
-            entry_length = *(mmap_entry_start + 12);
-            entry_type = *(mmap_entry_start + 20);
+            kio_puthex((uint32_t)mmap_entry_start);
+            kio_putc('\n');
+            kio_puthex(entry_size);
+            kio_putc('\n');
+            //entry_base = *(mmap_entry_start + 4);
+            //entry_length = *(mmap_entry_start + 12);
+            //entry_type = *(mmap_entry_start + 20);
 
             //kio_puthex(entry_type);
-            mmap_entry_start += entry_size;
+            mmap_entry_start += 0x18;
+        }*/
+
+        for (mmap_entry_start = (uint32_t*)mmap_addr
+            ; (uint32_t)mmap_entry_start < mmap_addr + mmap_length
+            ; mmap_entry_start += (entry_size + sizeof(uint32_t))/4) {
+            kio_puts("====== memory map entry ======\n");
+            entry_size = *(mmap_entry_start);
+            kio_puthex((uint32_t)mmap_entry_start);
+            kio_putc('\n');
+            kio_puthex(entry_size);
+            kio_putc('\n');
         }
     } else {
         kio_puts("Multiboot header didn't provide memory map.\n");

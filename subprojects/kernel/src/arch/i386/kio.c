@@ -15,7 +15,7 @@ void kio_init(void) {
     outb(0x3d5, (inb(0x3d5) & 0xe0) | 15);
 }
 
-kio_cls(void) {
+void kio_cls(void) {
     for (uint8_t row = 0; row < KIO_ROWS; row++) {
         for (uint8_t col = 0; col < KIO_COLS; col++) {
             KIO_SETCHARAT(row, col, ' ');
@@ -61,6 +61,7 @@ void kio_move(const uint8_t dir) {
     }
     if (dir & KIO_DIRECTION_DOWN) {
         if (kio_row < KIO_ROWS - 1) kio_row++;
+        else kio_scroll(KIO_SCROLL_DOWN);
     }
     if (dir & KIO_DIRECTION_LEFT) {
         if (kio_col <= 0) {
@@ -86,6 +87,7 @@ void kio_puthex(uint32_t n) {
         uint32_t mask = 0xf << (i*4);
         kio_putc(kio_hexdigits[(n & mask) >> (i*4)]);
     }
+    kio_updatecurs();
 }
 
 void kio_setcurspos(uint16_t col, uint16_t row) {
@@ -109,4 +111,18 @@ uint16_t kio_getcurspos(void) {
     ret |= ((uint16_t)inb(0x3d5)) << 8;
 
     return ret;
+}
+
+void kio_scroll(int dir) {
+    uint16_t *vmem = (uint16_t*)KIO_VMEM;
+
+    if (dir == KIO_SCROLL_DOWN) {
+        for (uint16_t i = 0; i < (KIO_ROWS-1)*KIO_COLS; i++) {
+            vmem[i] = vmem[i + KIO_COLS];
+        }
+        for (uint16_t i = (KIO_ROWS-1)*KIO_COLS; i < KIO_ROWS*KIO_COLS; i++) {
+            vmem[i] = KIO_DEFAULT_ATTR << 8;
+        }
+    }
+    //TODO: Implement scrolling up
 }
