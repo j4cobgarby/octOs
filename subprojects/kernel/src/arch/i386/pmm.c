@@ -26,25 +26,33 @@ void pmm_init(uint32_t* mboot_info, uint8_t* bitmap) {
         mem_lower = (*mboot_info + 4); // lower memory KB
         mem_upper = (*mboot_info + 8); // upper memory KB
 #ifdef KERNEL_DEBUG
-        kio_puts("Lower memory limit (KBs): ");
+        kio_puts("\nMemory bitmap address: ");
+        kio_puthex((uint32_t)bitmap);
+        kio_puts("\nLower memory limit (KBs): ");
         kio_puthex(mem_lower);
         kio_puts("\nUpper memory limit (KBs): ");
         kio_puthex(mem_upper);
         kio_putc('\n');
 #endif
     } else {
-        kio_puts("\nMultiboot header didn't provide required info.\n");
+        KIO_ERRORMSG("Multiboot header didn't provide memory limits.\n");
         while(1);
     }
 
-    amount_blocks = ((mem_upper << 10) + 0x100000) >> 12;
+    amount_blocks = ((mem_upper << 10) + 0x100000) >> 12; // mem_upper convd. to bytes, then add on upper memory offset
     bitmapbytes = amount_blocks >> 3;
 
     for (uint32_t i = 0; i < bitmapbytes; i++)
         bitmap[i] = 0;
 
-    for (uint32_t block = ADDR_BLOCK((uint32_t)&_kernel_start); block <= ADDR_BLOCK((uint32_t)&_kernel_end); block++) {
-        bitmap[block] = 1;
+    bitmap[bitmapbytes] = 0xFA;
+
+    for (uint32_t block = ADDR_BLOCK((uint32_t)&_kernel_start)
+        ; block <= ADDR_BLOCK((uint32_t)&_kernel_end); block++) {
+        kio_puts("Setting block: ");
+        kio_puthex(block);
+        kio_putc('\n');
+        bitmap[block >> 3] |= 1 << (block % 8);
     }
 
     kio_puts("Done.\n");
@@ -66,16 +74,34 @@ void pmm_init(uint32_t* mboot_info, uint8_t* bitmap) {
         for (mmap_entry_start = (uint32_t*)mmap_addr
             ; (uint32_t)mmap_entry_start < mmap_addr + mmap_length
             ; mmap_entry_start += (entry_size + 4)/4) {
-            entry_size      = mmap_entry_start[0];
-            entry_base      = mmap_entry_start[1];
-            entry_length    = mmap_entry_start[3];
-            entry_type      = mmap_entry_start[5];
+            entry_size = mmap_entry_start[0];
+            entry_base = mmap_entry_start[1];
+            entry_length = mmap_entry_start[3];
+            entry_type = mmap_entry_start[5];
 
 #ifdef KERNEL_DEBUG
             kio_puts("- Memory region: ");
             kio_puthex(entry_base);
             kio_puts(" ==> ");
-            kio_puthex(entry_base + entry_length);
+            kio_puthex(entry_base + entry_length - 1);
+            
+            switch (entry_type) {
+            case 1:
+                kio_puts(" (Available memory)");
+                break;
+            case 3:
+                kio_puts(" (ACPI)");
+                break;
+            case 4:
+                kio_puts(" (To be presvd. on hibernation)");
+                break;
+            case 5:
+                kio_puts(" (Defective)");
+                break;
+            default:
+                kio_puts(" (Resvd.)");
+            }
+
             kio_putc('\n');
 #endif
         }

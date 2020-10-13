@@ -18,7 +18,7 @@ pmm_bitmap: ; the beginning of the physical memory manager's bitmap
             ; each bit will represent a page in memory, of size PMM_BLOCKSIZE
 
 section .data
-msg1 db "Welcome to oct",10,0
+msg1 db "booted oct kernel",10,0
 
 section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol

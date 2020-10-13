@@ -19,13 +19,13 @@ void kio_cls(void) {
     for (uint8_t row = 0; row < KIO_ROWS; row++) {
         for (uint8_t col = 0; col < KIO_COLS; col++) {
             KIO_SETCHARAT(row, col, ' ');
-            KIO_SETATTRAT(row, col, KIO_DEFAULT_ATTR);
+            KIO_SETATTRAT(row, col, KIO_ATTR_DEFAULT);
         }
     }
 }
 
 void kio_puts(const char* s) {
-    kio_puts_attr(s, KIO_DEFAULT_ATTR);
+    kio_puts_attr(s, KIO_ATTR_DEFAULT);
 }
 
 void kio_puts_attr(const char* s, const char attr) {
@@ -34,7 +34,7 @@ void kio_puts_attr(const char* s, const char attr) {
 }
 
 void kio_putc(const char c) {
-    kio_putc_attr(c, KIO_DEFAULT_ATTR);
+    kio_putc_attr(c, KIO_ATTR_DEFAULT);
 }
 
 void kio_putc_attr(const char c, const char a) {
@@ -121,7 +121,7 @@ void kio_scroll(int dir) {
             vmem[i] = vmem[i + KIO_COLS];
         }
         for (uint16_t i = (KIO_ROWS-1)*KIO_COLS; i < KIO_ROWS*KIO_COLS; i++) {
-            vmem[i] = KIO_DEFAULT_ATTR << 8;
+            vmem[i] = KIO_ATTR_DEFAULT << 8;
         }
     }
     //TODO: Implement scrolling up

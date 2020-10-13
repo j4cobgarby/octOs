@@ -12,9 +12,17 @@
 #define KIO_DIRECTION_DOWN  0b0010
 #define KIO_DIRECTION_LEFT  0b0100
 #define KIO_DIRECTION_RIGHT 0b1000
-#define KIO_DEFAULT_ATTR    0x17
+#define KIO_ATTR_DEFAULT    0x17
+#define KIO_ATTR_ERROR      0xcf
+#define KIO_ATTR_WARNING    0xef
 #define KIO_SCROLL_UP       1
 #define KIO_SCROLL_DOWN     0
+
+#define KIO_ERRORMSG(msg)   kio_puts_attr("\n* ERROR *", KIO_ATTR_ERROR); \
+                            kio_putc(' '); kio_puts(msg);
+
+#define KIO_ERRORWARNING(msg)   kio_puts_attr("\n* WARN *", KIO_ATTR_WARNING); \
+                                kio_putc(' '); kio_puts(msg);
 
 #define KIO_SETCHARAT(row, col, c) *(char*)(KIO_VMEM + 2 * (KIO_COLS * row + col)) = c;
 #define KIO_SETATTRAT(row, col, a) *(char*)(1 + KIO_VMEM + 2 * (KIO_COLS * row + col)) = a;
