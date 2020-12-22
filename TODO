@@ -1,11 +1,11 @@
 DONE:
  Implement a few syscalls
  Keyboard input stub
+ Implement basic physical mem manager
 
 TO DO:
- Implement basic physical mem manager
- Implement processes (scheduling, creation, deletion, etc.)
  Implement memory management (paging)
+ Implement processes (scheduling, creation, deletion, etc.)
  Exception handlers to kill process if they do bad
  Write a 'process 0', to initialise everything
  Get some way of giving keyboard input to processes
