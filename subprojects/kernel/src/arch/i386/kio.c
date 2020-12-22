@@ -1,5 +1,6 @@
 #include "kio.h"
 #include "asm_procs.h"
+#include <stdarg.h>
 
 const char* kio_hexdigits = "0123456789abcdef";
 
@@ -88,6 +89,55 @@ void kio_puthex(uint32_t n) {
         kio_putc(kio_hexdigits[(n & mask) >> (i*4)]);
     }
     kio_updatecurs();
+}
+
+void kio_putdec(uint32_t n) {
+
+}
+
+void kio_putbin(uint32_t n) {
+    kio_putbin_bounds(n, 0, 31);
+}
+
+void kio_putbin_bounds(uint32_t n, uint32_t lobit, uint32_t hibit) {
+    if (hibit > 31) hibit = 31;
+
+    for (int32_t i = hibit; i >= (int32_t)lobit; i--) {
+        kio_putc('0' + ((n&(1<<i)) >> i));
+    }
+    kio_updatecurs();
+}
+
+void kio_printf(char *fmt, ...) {
+    va_list ap;
+    int ival;
+    char *sval;
+    char cval;
+
+    va_start(ap, fmt);
+    for (char *c = fmt; *c; c++) {
+        if (*c != '%') {
+            kio_putc(*c);
+        } else {
+            switch (*(++c)) {
+            case 'x':
+                ival = va_arg(ap, int);
+                kio_puthex(ival);
+                break;
+            case 's':
+                sval = va_arg(ap, char *);
+                kio_puts(sval);
+                break;
+            case 'c':
+                cval = va_arg(ap, int);
+                kio_putc(cval);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    va_end(ap);
 }
 
 void kio_setcurspos(uint16_t col, uint16_t row) {

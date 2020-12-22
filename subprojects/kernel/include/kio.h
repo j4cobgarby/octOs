@@ -4,6 +4,7 @@
 #define KIO_H
 
 #include <stdint.h>
+#include <stdarg.h>
 
 #define KIO_VMEM 0xb8000
 #define KIO_ROWS 25
@@ -12,9 +13,9 @@
 #define KIO_DIRECTION_DOWN  0b0010
 #define KIO_DIRECTION_LEFT  0b0100
 #define KIO_DIRECTION_RIGHT 0b1000
-#define KIO_ATTR_DEFAULT    0x17
-#define KIO_ATTR_ERROR      0xcf
-#define KIO_ATTR_WARNING    0xef
+#define KIO_ATTR_DEFAULT    0x6e
+#define KIO_ATTR_ERROR      0xe4
+#define KIO_ATTR_WARNING    0xe6
 #define KIO_SCROLL_UP       1
 #define KIO_SCROLL_DOWN     0
 
@@ -34,18 +35,34 @@ extern uint16_t kio_col;
 
 extern const char* kio_hexdigits;
 
+// Initialise all the stuff needed for kernel io to work
 void kio_init(void);
-void kio_cls(void); // Clear screen
-void kio_scroll(int dir); // KIO_SCROLL_UP or KIO_SCROLL_DOWN
-void kio_puts(const char* s); // Print null-terminated string s to screen
-void kio_puts_attr(const char* s, const char attr); // puts with attribute
-void kio_putc(const char c); // Print char c to screen
-void kio_putc_attr(const char c, const char attr); // putc with attribute
-void kio_puthex(uint32_t n); // Print n to screen, represented as hex
-void kio_putbin(uint32_t n); // Print n to screen, represented as binary
-void kio_putdec(uint32_t n); // Print n to screen, represented as decimal
-void kio_move(const uint8_t dir); // Move the cursor. dir is 0 or more KIO_DIRECTION's or'd together.
-void kio_setcurspos(uint16_t col, uint16_t row); // Set the visual cursor's position
+// Clear screen
+void kio_cls(void); 
+// KIO_SCROLL_UP or KIO_SCROLL_DOWN
+void kio_scroll(int dir); 
+// Print null-terminated string s to screen
+void kio_puts(const char* s); 
+// puts with attribute
+void kio_puts_attr(const char* s, const char attr); 
+// Print char c to screen
+void kio_putc(const char c); 
+// putc with attribute
+void kio_putc_attr(const char c, const char attr); 
+// Print n to screen, represented as hex
+void kio_puthex(uint32_t n); 
+// Print n to screen, represented as binary
+void kio_putbin(uint32_t n); 
+// Print n to screen as binary, only bits between lobit and hibit inclusive
+void kio_putbin_bounds(uint32_t n, uint32_t lobit, uint32_t hibit);
+// Print n to screen, represented as decimal
+void kio_putdec(uint32_t n);
+// Print a formatted string
+void kio_printf(char *fmt, ...);
+// Move the cursor. dir is 0 or more KIO_DIRECTION's or'd together.
+void kio_move(const uint8_t dir); 
+// Set the visual cursor's position
+void kio_setcurspos(uint16_t col, uint16_t row); 
 void kio_updatecurs(void);
 uint16_t kio_getcurspos(void);
 

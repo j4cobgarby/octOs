@@ -44,13 +44,12 @@ void pmm_init(uint32_t* mboot_info) {
     amount_blocks = ((mem_upper << 10) + 0x100000) >> 12; // mem_upper convd. to bytes, then add on upper memory offset
     bitmapbytes = amount_blocks >> 3;
 
-    kio_puts("Amount of bytes: ");
-    kio_puthex(bitmapbytes);
-    kio_puts("\n");
+    pmm_blocks_max = amount_blocks;
+    // All blocks are set at the beginning
+    pmm_blocks_used = amount_blocks;
 
     for (uint32_t i = 0; i < bitmapbytes; i++)
         ((uint8_t*)&pmm_bitmap)[i] = 0xff;
-    ((uint8_t*)&pmm_bitmap)[bitmapbytes] = 'A';
 
     kio_puts("Done.\n");
 
@@ -107,7 +106,7 @@ void pmm_init(uint32_t* mboot_info) {
 #endif
         }
 
-        kio_puts("Done.");
+        kio_puts("Done.\n");
     } else {
         kio_puts("Multiboot header didn't provide memory map.\n");
         while(1);
@@ -115,9 +114,22 @@ void pmm_init(uint32_t* mboot_info) {
 
     pmm_sets(ADDR_BLOCK((uint32_t)&_kernel_start),
         (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
+
+    kio_putbin_bounds(1337, 0, 16);
+    kio_putc('\n');
+    kio_puthex(1337);
+    kio_putc('\n');
+    kio_printf("Hello world! Test %x %s %c\n", 5, ":)", 'J');
 }
 
 void pmm_set(uint32_t block) {
+    if (!pmm_isset(block)) {
+        // If this block wasn't set, then that means
+        // one more block is now in use.
+        pmm_blocks_used++;
+    }
+
+    // Set the bit in the bitmap
     ((uint8_t*)&pmm_bitmap)[block >> 3] |= 1 << (block % 8);
 }
 
@@ -128,6 +140,13 @@ void pmm_sets(uint32_t startblock, uint32_t amount) {
 }
 
 void pmm_unset(uint32_t block) {
+    if (pmm_isset(block)) {
+        // If this block was set, then that means now one less block
+        // is in use.
+        pmm_blocks_used--;
+    }
+
+    // Unset the bit in the bitmap
     ((uint8_t*)&pmm_bitmap)[block >> 3] &= ~(1 << (block % 8));
 }
 
@@ -135,4 +154,8 @@ void pmm_unsets(uint32_t startblock, uint32_t amount) {
     for (uint32_t b = startblock; b < startblock+amount; b++) {
         pmm_unset(b);
     }
+}
+
+uint8_t pmm_isset(uint32_t block) {
+    return 0;
 }

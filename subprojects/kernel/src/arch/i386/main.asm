@@ -51,7 +51,7 @@ _start: ; kernel entry point
     call kio_cls
     call kio_init
 
-    push byte 0x1e
+    push byte 0x6e
     push dword msg1
     call kio_puts_attr
     add esp, 5
