@@ -14,13 +14,8 @@ void pmm_init(uint32_t* mboot_info) {
     uint32_t entry_type;
 
 #ifdef KERNEL_DEBUG
-    kio_puts("[PMM] multiboot flags: ");
-    kio_puthex(*mboot_info);
-    kio_puts("\n[PMM] Kernel: ");
-    kio_puthex((uint32_t)(&_kernel_start));
-    kio_puts(" -> ");
-    kio_puthex((uint32_t)(&_kernel_end));
-    kio_putc('\n');
+    kio_printf("[PMM] multiboot flags: %b\n", *mboot_info);
+    kio_printf("[PMM] kernel limits: %x -> %x\n", (uint32_t)(&_kernel_start), (uint32_t)(&_kernel_end));
 #endif
     kio_puts("[PMM] Initialising bitmap...");
 
@@ -28,13 +23,9 @@ void pmm_init(uint32_t* mboot_info) {
         mem_lower = mboot_info[1]; // lower memory KB
         mem_upper = mboot_info[2]; // upper memory KB
 #ifdef KERNEL_DEBUG
-        kio_puts("\nMemory bitmap address: ");
-        kio_puthex((uint32_t)&pmm_bitmap);
-        kio_puts("\nLower memory limit (KBs): ");
-        kio_puthex(mem_lower);
-        kio_puts("\nUpper memory limit (KBs): ");
-        kio_puthex(mem_upper);
-        kio_putc('\n');
+        kio_printf("\nPMM Bitmap address: %x\n", (uint32_t)&pmm_bitmap);
+        kio_printf("Lower memory limit: %dKB\n", mem_lower);
+        kio_printf("Upper memory limit: %dKB\n", mem_upper);
 #endif
     } else {
         KIO_ERRORMSG("[PMM] Multiboot header didn't provide memory limits.\n");
@@ -60,11 +51,7 @@ void pmm_init(uint32_t* mboot_info) {
         mmap_addr = mboot_info[12];
 
 #ifdef KERNEL_DEBUG
-        kio_puts("\n[PMM] MMap address: ");
-        kio_puthex(mmap_addr);
-        kio_puts("   MMap length: ");
-        kio_puthex(mmap_length);
-        kio_puts("\n");
+        kio_printf("\n[PMM] mmap addr: %x, mmap length: %d\n", mmap_addr, mmap_length);
 #endif
 
         for (mmap_entry_start = (uint32_t*)mmap_addr
@@ -80,10 +67,7 @@ void pmm_init(uint32_t* mboot_info) {
             }
 
 #ifdef KERNEL_DEBUG
-            kio_puts("- Region start: ");
-            kio_puthex(entry_base);
-            kio_puts(" Region length: ");
-            kio_puthex(entry_length);
+            kio_printf("- Start: %x Length: %x", entry_base, entry_length);
             
             switch (entry_type) {
             case 1:
@@ -114,12 +98,6 @@ void pmm_init(uint32_t* mboot_info) {
 
     pmm_sets(ADDR_BLOCK((uint32_t)&_kernel_start),
         (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
-
-    kio_putbin_bounds(1337, 0, 16);
-    kio_putc('\n');
-    kio_puthex(1337);
-    kio_putc('\n');
-    kio_printf("Hello world! Test %x %s %c\n", 5, ":)", 'J');
 }
 
 void pmm_set(uint32_t block) {

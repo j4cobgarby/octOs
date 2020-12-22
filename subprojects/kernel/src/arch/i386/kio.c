@@ -92,7 +92,48 @@ void kio_puthex(uint32_t n) {
 }
 
 void kio_putdec(uint32_t n) {
+    // The maximum possible 32 bit integer (4294967295) has 10 digits.
+    int digits[10];
+    static int pows10[10] = {
+        1,10,100,1000,10000,100000,
+        1000000,10000000,100000000,1000000000
+    };
+    int digitvalue, bitvalue;
+    int bitperdig;
+    int foundnonzero = 0;
 
+    for (int i = 0; i < 10; i++) {
+        digits[i] = 0;
+    }
+
+    for (int bi = 31; bi >= 0; bi--) {
+        bitvalue = (1<<bi) * ((n & (1 << bi)) >> bi);
+        if (bitvalue) {
+            for (int digitindex = 9; digitindex >=0; digitindex--) {
+                digitvalue = pows10[digitindex];
+                if (digitvalue <= bitvalue) {
+                    bitperdig = bitvalue / digitvalue;
+                    digits[digitindex] += bitperdig;
+                    bitvalue -= bitperdig * digitvalue;
+                    if (digits[digitindex] > 9) {
+                        digits[digitindex+1]++;
+                        digits[digitindex] -= 10;
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 9; i >= 0; i--) {
+        if (foundnonzero || i == 0) {
+            kio_putc('0' + digits[i]);
+        } else {
+            if (digits[i]) {
+                foundnonzero = 1;
+                kio_putc('0' + digits[i]);
+            }
+        }
+    }
 }
 
 void kio_putbin(uint32_t n) {
@@ -124,6 +165,14 @@ void kio_printf(char *fmt, ...) {
                 ival = va_arg(ap, int);
                 kio_puthex(ival);
                 break;
+            case 'd':
+                ival = va_arg(ap, int);
+                kio_putdec(ival);
+                break;
+            case 'b':
+                ival = va_arg(ap, int);
+                kio_putbin(ival);
+                break;
             case 's':
                 sval = va_arg(ap, char *);
                 kio_puts(sval);
@@ -138,6 +187,7 @@ void kio_printf(char *fmt, ...) {
         }
     }
     va_end(ap);
+    kio_updatecurs();
 }
 
 void kio_setcurspos(uint16_t col, uint16_t row) {
