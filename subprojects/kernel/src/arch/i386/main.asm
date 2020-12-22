@@ -1,6 +1,7 @@
 %include "src/arch/i386/multiboot.asm"
 
 section .bss
+global pmm_bitmap
 align 16
 ;; the stack is defined here.
 ;; defined in .bss to save kernel space, since it'll just say
@@ -13,6 +14,7 @@ stack_top:
 ring3_stack_bottom:
     resb 8192
 ring3_stack_top:
+
 
 pmm_bitmap: ; the beginning of the physical memory manager's bitmap
             ; each bit will represent a page in memory, of size PMM_BLOCKSIZE
@@ -54,10 +56,10 @@ _start: ; kernel entry point
     call kio_puts_attr
     add esp, 5
 
-    push dword pmm_bitmap
+    ;push dword pmm_bitmap
     push dword ebx
     call pmm_init
-    add esp, 8
+    add esp, 4
 
     call fill_tss_descriptor
     lgdt [gdt_descriptor]

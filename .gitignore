@@ -4,3 +4,5 @@ bx_*.ini
 *.bin
 *.img
 .vscode
+.cache
+compile_commands.json

@@ -3,4 +3,4 @@ ata0-master: type=disk, path="build/octos.img", cylinders=1024, heads=15, spt=63
 boot: disk
 display_library: x, options="gui_debug"
 magic_break: enabled=1
-megs: 32
+megs: 128
