@@ -15,9 +15,9 @@ ring3_stack_bottom:
     resb 8192
 ring3_stack_top:
 
-
 pmm_bitmap: ; the beginning of the physical memory manager's bitmap
             ; each bit will represent a page in memory, of size PMM_BLOCKSIZE
+    resb 0x100000 ; allocate the maximum possible needed amount of memory (4GB worth of blocks)
 
 section .data
 msg1 db "booted oct kernel",10,0

@@ -2,6 +2,8 @@
 #include "kio.h"
 
 extern uint8_t pmm_bitmap;
+uint32_t pmm_blocks_max = 0;
+uint32_t pmm_blocks_used = 0;
 
 void pmm_init(uint32_t* mboot_info) {
     uint32_t mem_lower, mem_upper;
@@ -15,7 +17,8 @@ void pmm_init(uint32_t* mboot_info) {
 
 #ifdef KERNEL_DEBUG
     kio_printf("[PMM] multiboot flags: %b\n", *mboot_info);
-    kio_printf("[PMM] kernel limits: %x -> %x\n", (uint32_t)(&_kernel_start), (uint32_t)(&_kernel_end));
+    kio_printf("[PMM] kernel limits: %x -> %x\n", 
+        (uint32_t)(&_kernel_start), (uint32_t)(&_kernel_end));
 #endif
     kio_puts("[PMM] Initialising bitmap...");
 
@@ -36,11 +39,14 @@ void pmm_init(uint32_t* mboot_info) {
     bitmapbytes = amount_blocks >> 3;
 
     pmm_blocks_max = amount_blocks;
-    // All blocks are set at the beginning
-    pmm_blocks_used = amount_blocks;
+    pmm_blocks_used = 0;
 
-    for (uint32_t i = 0; i < bitmapbytes; i++)
-        ((uint8_t*)&pmm_bitmap)[i] = 0xff;
+    kio_printf("Amount of blocks: %x\n", amount_blocks);
+    kio_printf("&pmm_blocks_max=%x, &pmm_blocks_used=%x\n", &pmm_blocks_max, &pmm_blocks_used);
+
+    for (uint32_t i = 0; i < amount_blocks; i++) {
+        pmm_set(i);
+    }
 
     kio_puts("Done.\n");
 
@@ -63,6 +69,8 @@ void pmm_init(uint32_t* mboot_info) {
             entry_type = mmap_entry_start[5];
 
             if (entry_type == 1) { // Available memory
+                kio_printf("Unsetting block range %x -> %x\n", 
+                    ADDR_BLOCK(entry_base), ADDR_BLOCK(entry_base)+ADDR_BLOCK(entry_length));
                 pmm_unsets(ADDR_BLOCK(entry_base), ADDR_BLOCK(entry_length));
             }
 
@@ -98,17 +106,32 @@ void pmm_init(uint32_t* mboot_info) {
 
     pmm_sets(ADDR_BLOCK((uint32_t)&_kernel_start),
         (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
+
+    kio_printf("Blocks used: %x, Max blocks: %x\n", pmm_blocks_used, pmm_blocks_max);
+
+    // kio_printf("Allocating memory block.\n");
+    // asm("xchg %bx, %bx");
+    // int *ints = pmm_alloc();
+    // ints[0] = 2;
+    // ints[1] = 4;
+    // ints[2] = 6;
+    // ints[3] = 8;
+    // ints[4] = 10;
+    // kio_printf("Allocated a block at address %x.\n", (uint32_t)ints);
+    // //for (int i = 0; i < 5; i++) {
+    // //    kio_printf("Element at %d: %d\n", i, ints[i]);
+    // //}
+    // asm("xchg %bx, %bx");
+    // int *ints2 = pmm_alloc();
+    // kio_printf("Allocated another block at address %x.\n", (uint32_t)ints2);
 }
 
 void pmm_set(uint32_t block) {
     if (!pmm_isset(block)) {
-        // If this block wasn't set, then that means
-        // one more block is now in use.
+        // Set the bit in the bitmap
         pmm_blocks_used++;
+        ((uint8_t*)&pmm_bitmap)[block >> 3] |= 1 << (block % 8);
     }
-
-    // Set the bit in the bitmap
-    ((uint8_t*)&pmm_bitmap)[block >> 3] |= 1 << (block % 8);
 }
 
 void pmm_sets(uint32_t startblock, uint32_t amount) {
@@ -119,13 +142,10 @@ void pmm_sets(uint32_t startblock, uint32_t amount) {
 
 void pmm_unset(uint32_t block) {
     if (pmm_isset(block)) {
-        // If this block was set, then that means now one less block
-        // is in use.
+        // Unset the bit in the bitmap
         pmm_blocks_used--;
+        ((uint8_t*)&pmm_bitmap)[block >> 3] &= ~(1 << (block % 8));
     }
-
-    // Unset the bit in the bitmap
-    ((uint8_t*)&pmm_bitmap)[block >> 3] &= ~(1 << (block % 8));
 }
 
 void pmm_unsets(uint32_t startblock, uint32_t amount) {
@@ -135,5 +155,32 @@ void pmm_unsets(uint32_t startblock, uint32_t amount) {
 }
 
 uint8_t pmm_isset(uint32_t block) {
+    return ((&pmm_bitmap)[block >> 3] & (1 << (block % 8))) >> (block % 8);
+}
+
+void *pmm_alloc() {
+    uint32_t free_block = find_free_block();
+
+    pmm_set(free_block);
+
+    return (void*)(free_block * PMM_BLOCKSIZE);
+}
+
+void pmm_free(void * phys_addr) {
+    pmm_unset(ADDR_BLOCK((uint32_t)phys_addr));
+}
+
+uint32_t find_free_block() {
+    for (uint32_t i = 0; i < pmm_blocks_max; i++) {
+        uint8_t byte = (&pmm_bitmap)[i];
+        if (byte != 0xff) {
+            uint8_t mask = 1;
+            for (uint8_t bit = 0; bit < 8; bit++) {
+                if ((byte & mask) >> bit == 0) {
+                    return byte * 8 + bit;
+                }
+            }
+        }
+    }
     return 0;
 }
