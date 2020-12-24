@@ -7,7 +7,7 @@ uint32_t pmm_blocks_used = 0;
 
 void pmm_init(uint32_t* mboot_info) {
     uint32_t mem_lower, mem_upper;
-    uint32_t amount_blocks, bitmapbytes;
+    uint32_t amount_blocks;
     uint32_t mmap_length, mmap_addr;
     uint32_t* mmap_entry_start; // start address of current mmap entry
     uint32_t entry_size;
@@ -36,13 +36,9 @@ void pmm_init(uint32_t* mboot_info) {
     }
 
     amount_blocks = ((mem_upper << 10) + 0x100000) >> 12; // mem_upper convd. to bytes, then add on upper memory offset
-    bitmapbytes = amount_blocks >> 3;
 
     pmm_blocks_max = amount_blocks;
     pmm_blocks_used = 0;
-
-    kio_printf("Amount of blocks: %x\n", amount_blocks);
-    kio_printf("&pmm_blocks_max=%x, &pmm_blocks_used=%x\n", &pmm_blocks_max, &pmm_blocks_used);
 
     for (uint32_t i = 0; i < amount_blocks; i++) {
         pmm_set(i);
@@ -107,23 +103,22 @@ void pmm_init(uint32_t* mboot_info) {
     pmm_sets(ADDR_BLOCK((uint32_t)&_kernel_start),
         (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
 
-    kio_printf("Blocks used: %x, Max blocks: %x\n", pmm_blocks_used, pmm_blocks_max);
+    pmm_set(0);
 
-    // kio_printf("Allocating memory block.\n");
-    // asm("xchg %bx, %bx");
-    // int *ints = pmm_alloc();
-    // ints[0] = 2;
-    // ints[1] = 4;
-    // ints[2] = 6;
-    // ints[3] = 8;
-    // ints[4] = 10;
-    // kio_printf("Allocated a block at address %x.\n", (uint32_t)ints);
-    // //for (int i = 0; i < 5; i++) {
-    // //    kio_printf("Element at %d: %d\n", i, ints[i]);
-    // //}
-    // asm("xchg %bx, %bx");
-    // int *ints2 = pmm_alloc();
-    // kio_printf("Allocated another block at address %x.\n", (uint32_t)ints2);
+#ifdef KERNEL_DEBUG
+    kio_printf("Blocks used: %x, Max blocks: %x\n", pmm_blocks_used, pmm_blocks_max);
+#endif
+
+    kio_printf("Allocating memory block.\n");
+    int *ints = pmm_alloc();
+    ints[0] = 2;
+    ints[1] = 4;
+    ints[2] = 6;
+    ints[3] = 8;
+    ints[4] = 10;
+    kio_printf("Allocated a block at address %x.\n", (uint32_t)ints);
+    int *ints2 = pmm_alloc();
+    kio_printf("Allocated another block at address %x.\n", (uint32_t)ints2);
 }
 
 void pmm_set(uint32_t block) {
@@ -160,7 +155,6 @@ uint8_t pmm_isset(uint32_t block) {
 
 void *pmm_alloc() {
     uint32_t free_block = find_free_block();
-
     pmm_set(free_block);
 
     return (void*)(free_block * PMM_BLOCKSIZE);
@@ -171,16 +165,16 @@ void pmm_free(void * phys_addr) {
 }
 
 uint32_t find_free_block() {
-    for (uint32_t i = 0; i < pmm_blocks_max; i++) {
+    uint32_t amount_bytes = pmm_blocks_max >> 3;
+    for (uint32_t i = 0; i < amount_bytes; i++) {
         uint8_t byte = (&pmm_bitmap)[i];
-        if (byte != 0xff) {
-            uint8_t mask = 1;
+        //if (byte != 0xff) {
             for (uint8_t bit = 0; bit < 8; bit++) {
-                if ((byte & mask) >> bit == 0) {
-                    return byte * 8 + bit;
+                if ((byte & (1 << bit)) >> bit == 0) {
+                    return i * 8 + bit;
                 }
             }
-        }
+        //}
     }
     return 0;
 }
