@@ -1,5 +1,6 @@
 #include "pmm.h"
 #include "kio.h"
+#include <stdint.h>
 
 extern uint8_t pmm_bitmap;
 uint32_t pmm_blocks_max = 0;
@@ -106,19 +107,9 @@ void pmm_init(uint32_t* mboot_info) {
     pmm_set(0);
 
 #ifdef KERNEL_DEBUG
-    kio_printf("Blocks used: %x, Max blocks: %x\n", pmm_blocks_used, pmm_blocks_max);
+    kio_printf("Blocks used initially: %d, Max blocks: %d\n", 
+        pmm_blocks_used, pmm_blocks_max);
 #endif
-
-    kio_printf("Allocating memory block.\n");
-    int *ints = pmm_alloc();
-    ints[0] = 2;
-    ints[1] = 4;
-    ints[2] = 6;
-    ints[3] = 8;
-    ints[4] = 10;
-    kio_printf("Allocated a block at address %x.\n", (uint32_t)ints);
-    int *ints2 = pmm_alloc();
-    kio_printf("Allocated another block at address %x.\n", (uint32_t)ints2);
 }
 
 void pmm_set(uint32_t block) {
@@ -155,13 +146,24 @@ uint8_t pmm_isset(uint32_t block) {
 
 void *pmm_alloc() {
     uint32_t free_block = find_free_block();
+    if (!free_block) return 0;
     pmm_set(free_block);
-
     return (void*)(free_block * PMM_BLOCKSIZE);
 }
 
-void pmm_free(void * phys_addr) {
+void *pmm_allocs(uint32_t length) {
+    uint32_t first = find_free_blocks(length);
+    if (!first) return 0;
+    pmm_sets(first, length);
+    return (void*)(first * PMM_BLOCKSIZE);
+}
+
+void pmm_free(void *phys_addr) {
     pmm_unset(ADDR_BLOCK((uint32_t)phys_addr));
+}
+
+void pmm_frees(void *phys_addr, uint32_t length) {
+    pmm_unsets(ADDR_BLOCK((uint32_t)phys_addr), length);
 }
 
 uint32_t find_free_block() {
@@ -170,11 +172,38 @@ uint32_t find_free_block() {
         uint8_t byte = (&pmm_bitmap)[i];
         //if (byte != 0xff) {
             for (uint8_t bit = 0; bit < 8; bit++) {
-                if ((byte & (1 << bit)) >> bit == 0) {
+                if (!(byte & (1 << bit))) {
                     return i * 8 + bit;
                 }
             }
         //}
     }
+    return 0;
+}
+
+uint32_t find_free_blocks(uint32_t length) {
+    uint32_t amount_bytes = pmm_blocks_max >> 3;
+    uint32_t running_total;
+
+    for (uint32_t i = 0; i < amount_bytes; i++) {
+        uint32_t base_block = i*8;
+
+        for (uint8_t start_bit = 0; start_bit < 8; start_bit++, base_block++) {
+            // Check each starting bit to see if it begins a run of the correct
+            // amount of free blocks
+            running_total = 0;
+            for (uint32_t j = 0; j < length; j++) {
+                if (!pmm_isset(base_block + j)) {
+                    running_total++;
+                    if (running_total == length) {
+                        return base_block;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
     return 0;
 }

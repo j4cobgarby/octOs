@@ -16,7 +16,14 @@ void pmm_unset(uint32_t block);
 void pmm_unsets(uint32_t startblock, uint32_t amount);
 uint8_t pmm_isset(uint32_t block);
 void *pmm_alloc();
-void pmm_free(void *);
+void pmm_free(void *phys_addr);
+void *pmm_allocs(uint32_t length);
+void pmm_frees(void *phys_addr, uint32_t length);
 uint32_t find_free_block();
+
+/*
+Find a contiguous sequence of free blocks
+*/
+uint32_t find_free_blocks(uint32_t length);
 
 #endif

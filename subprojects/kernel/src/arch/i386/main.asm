@@ -38,6 +38,7 @@ _kernel_start:
 %include "src/arch/i386/syscall.asm"
 
 extern pmm_init
+extern vmm_init
 extern kio_puts
 extern kio_puts_attr
 extern kio_init
@@ -60,6 +61,7 @@ _start: ; kernel entry point
     push dword ebx
     call pmm_init
     add esp, 4
+    call vmm_init
 
     call fill_tss_descriptor
     lgdt [gdt_descriptor]

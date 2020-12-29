@@ -5,6 +5,7 @@ ASMFLAGS = -felf32 -i src/arch/i386/
 
 OBJS = kio.c.o \
 pmm.c.o \
+paging.c.o \
 asm_procs.c.o \
 main.asm.o \
 
