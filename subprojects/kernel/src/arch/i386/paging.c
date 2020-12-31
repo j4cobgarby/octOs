@@ -120,7 +120,6 @@ uint8_t vmm_map_page_to_frame(void *vaddr, void *paddr) {
 void vmm_set_paging_enabled(uint8_t enabled) {
     if (enabled) {
         // Set the paging bit in cr0
-        asm("xchg %bx, %bx");
         asm(
 "mov %cr0, %eax\n\
 \tor $0x80000001, %eax\n\
