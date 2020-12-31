@@ -12,9 +12,9 @@
 /*
 Format of a virtual address:
 
-|31               22|21                 12|11             0|
-+-------------------+---------------------+----------------+
-| Index in page dir | Index in page Table | Offset in page |
+|31                 22|21                 12|11                         0|
++---------------------+---------------------+----------------------------+
+|   Index in page dir | Index in page Table |             Offset in page |
 
 */
 
@@ -30,7 +30,7 @@ struct __attribute__((__packed__)) pte_t {
     uint8_t dirty   : 1; // SET BY CPU. 0: not been written to, 1: written to
     uint8_t rsvd1   : 2; // reserved
     uint8_t avail   : 3; // available to store data
-    uint32_t frame  : 20; // The frame address that the page refers to
+    uint32_t frame  : 20; // The frame address that the page refers to (bits 12-31)
 };
 
 /*
@@ -47,7 +47,7 @@ struct __attribute__((__packed__)) pde_t {
     uint8_t pagesize        : 1; // 0 : 4KB pages, 1 : 4MB pages
     uint8_t global          : 1; // global pages (ignored by cpu)
     uint8_t avail           : 3; // available to store data
-    uint32_t addr           : 20; // Physical address of the page table
+    uint32_t addr           : 20; // Physical address of the page table (bits 12-31)
 };
 
 /*
@@ -63,11 +63,11 @@ struct pagetable_t {
 Page directory
 A single page directory describes a full 4GB of memory.
 */
-struct pagedirdtable_t {
+struct pagedirtable_t {
     struct pde_t pdirs[VMM_TABLES_PER_PAGEDIR];
 };
 
-extern struct pagedirdtable_t* vmm_current_pdir;
+extern struct pagedirtable_t* vmm_current_pdir;
 
 /*
 Initialise the virtual memory manager
@@ -100,7 +100,7 @@ struct pde_t* vmm_pde_from_addr(struct pde_t *pdtable, uint32_t vaddr);
 /*
 Change which page directory is currently being used by the processor.
 */
-uint8_t vmm_change_current_pdir(struct pagedirdtable_t *dir);
+uint8_t vmm_change_current_pdir(struct pagedirtable_t *dir);
 
 /*
 Invalidate a page in the TLB, so that it will be taken from the page
@@ -113,5 +113,7 @@ Map the page at a virtual address to the frame at a physical address
 Return 0 if not able to do so.
 */
 uint8_t vmm_map_page_to_frame(void *vaddr, void *paddr);
+
+void vmm_set_paging_enabled(uint8_t enabled);
 
 #endif

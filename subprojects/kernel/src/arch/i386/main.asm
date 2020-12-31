@@ -61,6 +61,7 @@ _start: ; kernel entry point
     push dword ebx
     call pmm_init
     add esp, 4
+    
     call vmm_init
 
     call fill_tss_descriptor

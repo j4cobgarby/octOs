@@ -20,6 +20,7 @@ void pmm_free(void *phys_addr);
 void *pmm_allocs(uint32_t length);
 void pmm_frees(void *phys_addr, uint32_t length);
 uint32_t find_free_block();
+void pmm_memset(void *base, int8_t byte, uint32_t length);
 
 /*
 Find a contiguous sequence of free blocks

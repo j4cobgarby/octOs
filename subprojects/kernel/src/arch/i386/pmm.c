@@ -102,13 +102,13 @@ void pmm_init(uint32_t* mboot_info) {
     }
 
     pmm_sets(ADDR_BLOCK((uint32_t)&_kernel_start),
-        (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
+        1 + (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
 
     pmm_set(0);
 
 #ifdef KERNEL_DEBUG
-    kio_printf("Blocks used initially: %d, Max blocks: %d\n", 
-        pmm_blocks_used, pmm_blocks_max);
+    kio_printf("Blocks used initially: %d (by the kernel: %d)\n", pmm_blocks_used, 
+        1 + (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
 #endif
 }
 
@@ -206,4 +206,10 @@ uint32_t find_free_blocks(uint32_t length) {
     }
 
     return 0;
+}
+
+void pmm_memset(void *base, int8_t byte, uint32_t length) {
+    for (uint32_t i = 0; i < length; i++, base++) {
+        *((int8_t*)base) = byte;
+    }
 }
