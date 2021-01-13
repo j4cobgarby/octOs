@@ -11,9 +11,6 @@ main.asm.o \
 
 all: octos.img
 
-test:
-	echo $(BUILDDIR)
-
 clean:
 	rm -rf ../../build
 
