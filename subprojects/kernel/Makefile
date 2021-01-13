@@ -1,6 +1,6 @@
 CC = i686-elf-gcc
 ASM = nasm
-CFLAGS = -Wall -Wextra -ffreestanding -I include -DKERNEL_DEBUG
+CFLAGS = -Wall -Wextra -ffreestanding -I include -DKERNEL_DEBUG -g
 ASMFLAGS = -felf32 -i src/arch/i386/
 
 OBJS = kio.c.o \
@@ -18,6 +18,7 @@ clean:
 	rm -rf ../../build
 
 octos.img: octos.iso
+	rm ../../build/octos.img
 	cd ../../build && \
 	bximage -mode=resize -hd=483M -imgmode=flat -q octos.iso octos.img
 

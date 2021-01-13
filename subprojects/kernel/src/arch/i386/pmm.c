@@ -66,8 +66,10 @@ void pmm_init(uint32_t* mboot_info) {
             entry_type = mmap_entry_start[5];
 
             if (entry_type == 1) { // Available memory
+#ifdef KERNEL_DEBUG
                 kio_printf("Unsetting block range %x -> %x\n", 
                     ADDR_BLOCK(entry_base), ADDR_BLOCK(entry_base)+ADDR_BLOCK(entry_length));
+#endif
                 pmm_unsets(ADDR_BLOCK(entry_base), ADDR_BLOCK(entry_length));
             }
 
@@ -170,13 +172,13 @@ uint32_t find_free_block() {
     uint32_t amount_bytes = pmm_blocks_max >> 3;
     for (uint32_t i = 0; i < amount_bytes; i++) {
         uint8_t byte = (&pmm_bitmap)[i];
-        //if (byte != 0xff) {
+        if (byte != 0xff) {
             for (uint8_t bit = 0; bit < 8; bit++) {
                 if (!(byte & (1 << bit))) {
                     return i * 8 + bit;
                 }
             }
-        //}
+        }
     }
     return 0;
 }

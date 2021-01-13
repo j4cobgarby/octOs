@@ -2,7 +2,38 @@ PIC_MASTER_OFFSET   equ 0x20
 PIC_SLAVE_OFFSET    equ 0x30
 
 idt_start:  ; each idt entry is 8 bytes long
-    times PIC_MASTER_OFFSET dq 0       ; pad with doublewords to get up to PIC entries
+    dq 0    ; div by 0
+    dq 0    
+    dq 0    ; nmi
+    dq 0
+    dq 0    ;overflow
+    dq 0
+    dq 0
+    dq 0
+    dq 0    ; double fault
+    dq 0    
+    dq 0
+    dq 0
+    dq 0
+    dq 0    ; #GP
+    dq 0    ; #PF
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
+    dq 0
 idt_pic_entries:
 idt_pit:
     dw 0x0000
