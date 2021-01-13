@@ -6,3 +6,4 @@ bx_*.ini
 .vscode
 .cache
 compile_commands.json
+*.log
