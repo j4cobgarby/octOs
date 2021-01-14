@@ -112,6 +112,8 @@ void pmm_init(uint32_t* mboot_info) {
     kio_printf("Blocks used initially: %d (by the kernel: %d)\n", pmm_blocks_used, 
         1 + (ADDR_BLOCK((uint32_t)&_kernel_end)) - (ADDR_BLOCK((uint32_t)&_kernel_start)));
 #endif
+
+    //kio_putdec(10 / 0);
 }
 
 void pmm_set(uint32_t block) {

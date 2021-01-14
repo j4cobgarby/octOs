@@ -1,7 +1,9 @@
 PIC_MASTER_OFFSET   equ 0x20
 PIC_SLAVE_OFFSET    equ 0x30
 
-idt_start:  ; each idt entry is 8 bytes long
+global _idt_start
+
+_idt_start:  ; each idt entry is 8 bytes long
     dq 0    ; div by 0
     dq 0    
     dq 0    ; nmi
@@ -55,7 +57,7 @@ idt_syscall:
     db 11101110b    ; type
     dw 0x0000       ; offset 16-31
 
-idt_length equ $ - idt_start
+idt_length equ $ - _idt_start - 1
 
 idt_descriptor  dw idt_length
-                dd idt_start
+                dd _idt_start

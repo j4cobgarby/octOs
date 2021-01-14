@@ -43,6 +43,7 @@ extern kio_puts
 extern kio_puts_attr
 extern kio_init
 extern kio_cls
+extern register_exceptions
 
 _start: ; kernel entry point
     ;warning: don't touch ebx until after pmm_init
@@ -74,6 +75,7 @@ _start: ; kernel entry point
     call init_keyboard
     call init_syscall
     lidt [idt_descriptor]
+    call register_exceptions
     call pic_init
 
     jmp hltlp

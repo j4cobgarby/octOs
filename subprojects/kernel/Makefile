@@ -1,6 +1,7 @@
 CC = i686-elf-gcc
 ASM = nasm
-CFLAGS = -Wall -Wextra -ffreestanding -I include -DKERNEL_DEBUG -g
+CFLAGS = -Wall -Wextra -ffreestanding -I include -DKERNEL_DEBUG -g \
+-mno-red-zone -mgeneral-regs-only
 ASMFLAGS = -felf32 -i src/arch/i386/
 
 OBJS = kio.c.o \
@@ -8,6 +9,8 @@ pmm.c.o \
 paging.c.o \
 asm_procs.c.o \
 main.asm.o \
+exception_handlers.c.o \
+idt.c.o
 
 all: octos.img
 

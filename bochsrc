@@ -4,4 +4,4 @@ boot: disk
 display_library: x, options="gui_debug"
 magic_break: enabled=1
 megs: 128
-log: bochs.log
+#log: bochs.log
