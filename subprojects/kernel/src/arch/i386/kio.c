@@ -226,3 +226,7 @@ void kio_scroll(int dir) {
     }
     //TODO: Implement scrolling up
 }
+
+void kio_print_kernel_banner() {
+    kio_puts_attr("OCT kernel alpha\n", 0x5f);
+}

@@ -20,7 +20,7 @@ pmm_bitmap: ; the beginning of the physical memory manager's bitmap
     resb 0x100000 ; allocate the maximum possible needed amount of memory (4GB worth of blocks)
 
 section .data
-msg1 db "booted oct kernel",10,0
+    ; data here
 
 section .text   ; now the actual kernel entry point is in this section
 global _start:function (_start.end - _start)    ; make the object file store the length of the _start symbol
@@ -43,6 +43,7 @@ extern kio_puts
 extern kio_puts_attr
 extern kio_init
 extern kio_cls
+extern kio_print_kernel_banner
 extern register_exceptions
 
 _start: ; kernel entry point
@@ -53,12 +54,8 @@ _start: ; kernel entry point
     call kio_cls
     call kio_init
 
-    push byte 0x6e
-    push dword msg1
-    call kio_puts_attr
-    add esp, 5
+    call kio_print_kernel_banner
 
-    ;push dword pmm_bitmap
     push dword ebx
     call pmm_init
     add esp, 4
