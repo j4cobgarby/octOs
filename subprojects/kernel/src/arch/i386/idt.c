@@ -14,6 +14,7 @@ void register_exception_handler(uint8_t index, uint32_t address) {
 }
 
 void register_exceptions() {
-    kio_printf("Address of IDT: %x\n", (uint32_t)(&_idt_start));
     register_exception_handler(0, (uint32_t)&exception_handler_DE);
+
+    kio_putdec(10 / 0);
 }

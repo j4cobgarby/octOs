@@ -3,5 +3,9 @@
 
 __attribute__ ((interrupt))
 void exception_handler_DE(struct interrupt_frame *frame) {
-    asm("xchg %bx, %bx");
+    kio_printf("Div by zero at %x :(\n", frame->eip);
+
+    while(1) {
+        asm("hlt");
+    };
 }

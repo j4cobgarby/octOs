@@ -66,10 +66,6 @@ void pmm_init(uint32_t* mboot_info) {
             entry_type = mmap_entry_start[5];
 
             if (entry_type == 1) { // Available memory
-#ifdef KERNEL_DEBUG
-                kio_printf("Unsetting block range %x -> %x\n", 
-                    ADDR_BLOCK(entry_base), ADDR_BLOCK(entry_base)+ADDR_BLOCK(entry_length));
-#endif
                 pmm_unsets(ADDR_BLOCK(entry_base), ADDR_BLOCK(entry_length));
             }
 

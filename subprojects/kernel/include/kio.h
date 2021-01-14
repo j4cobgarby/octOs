@@ -13,9 +13,9 @@
 #define KIO_DIRECTION_DOWN  0b0010
 #define KIO_DIRECTION_LEFT  0b0100
 #define KIO_DIRECTION_RIGHT 0b1000
-#define KIO_ATTR_DEFAULT    0x6e
-#define KIO_ATTR_ERROR      0xe4
-#define KIO_ATTR_WARNING    0xe6
+#define KIO_ATTR_DEFAULT    0x0f
+#define KIO_ATTR_ERROR      0x04
+#define KIO_ATTR_WARNING    0xee
 #define KIO_SCROLL_UP       1
 #define KIO_SCROLL_DOWN     0
 
