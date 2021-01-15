@@ -12,12 +12,19 @@
 #define ATA_PIO_STATUS_RDY 0x40
 #define ATA_PIO_STATUS_BSY 0x80
 
-#define ATA_PIO_PORT_BUS0_BASE 0x1f0
-#define ATA_PIO_PORT_BUS1_BASE 0x170
+#define ATA_PIO_DATA    0x0
+#define ATA_PIO_ERR     0x1
+#define ATA_PIO_FEAT    0x1
+#define ATA_PIO_SECT    0x2
+#define ATA_PIO_LBAL    0x3
+#define ATA_PIO_LBAM    0x4
+#define ATA_PIO_LBAH    0x5
+#define ATA_PIO_DRV     0x6
+#define ATA_PIO_STAT    0x7
+#define ATA_PIO_CMND    0x7
 
-#define ATA_PIO_PORT_BUS0_STAT 0x3f6
-#define ATA_PIO_PORT_BUS1_STAT 0x376
-
+#define ATA_PIO_BUS0 0x1f0
+#define ATA_PIO_BUS0_STAT 0x3f6
 
 void ata_pio_init();
 

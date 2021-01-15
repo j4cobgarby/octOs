@@ -15,10 +15,6 @@ the page fault handler can allocate a frame for them.
 void vmm_init() {
     struct pagedirtable_t *dir = (struct pagedirtable_t*)pmm_alloc();
     pmm_memset(dir, 0, sizeof(struct pagedirtable_t));
-#ifdef KERNEL_DEBUG
-    kio_printf("Page directory at: %x, amount of blocks: %d\n", 
-        dir, ADDR_BLOCK((uint32_t)dir));
-#endif
 
     struct pagetable_t *table1 = (struct pagetable_t*)pmm_alloc();
     pmm_memset(table1, 0, sizeof(struct pagetable_t));
@@ -32,10 +28,6 @@ void vmm_init() {
     entry->present = 1;
     entry->rw = 1;
     entry->addr = (uint32_t)table1 >> 12;
-
-#ifdef KERNEL_DEBUG
-    kio_printf("Pde at %x, Ptable1 at %x\n", entry, table1);
-#endif
 
     vmm_change_current_pdir(dir);
     vmm_set_paging_enabled(1);
