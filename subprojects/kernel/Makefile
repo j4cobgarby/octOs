@@ -10,7 +10,8 @@ paging.c.o \
 asm_procs.c.o \
 main.asm.o \
 exception_handlers.c.o \
-idt.c.o
+idt.c.o \
+ata_pio.c.o
 
 all: octos.img
 

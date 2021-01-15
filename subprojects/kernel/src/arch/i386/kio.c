@@ -83,7 +83,6 @@ void kio_move(const uint8_t dir) {
 }
 
 void kio_puthex(uint32_t n) {
-    kio_puts("0x");
     for (int i = 7; i >= 0; i--) {
         uint32_t mask = 0xf << (i*4);
         kio_putc(kio_hexdigits[(n & mask) >> (i*4)]);

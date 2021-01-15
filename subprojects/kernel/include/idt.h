@@ -36,7 +36,6 @@ void register_exception_handler(uint8_t index, uint32_t address);
 
 void register_exceptions();
 
-// Handler for div by zero fault
 __attribute__ ((interrupt))
 void exception_handler_DE(struct interrupt_frame_t *frame);
 
