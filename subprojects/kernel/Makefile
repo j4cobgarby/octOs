@@ -19,7 +19,7 @@ clean:
 	rm -rf ../../build
 
 octos.img: octos.iso
-	rm ../../build/octos.img
+	rm -f ../../build/octos.img
 	cd ../../build && \
 	bximage -mode=resize -hd=483M -imgmode=flat -q octos.iso octos.img
 
