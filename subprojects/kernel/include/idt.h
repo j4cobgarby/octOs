@@ -41,10 +41,10 @@ void exception_handler_DE(struct interrupt_frame_t *frame);
 
 __attribute__ ((interrupt))
 void exception_handler_GP(struct interrupt_frame_t *frame, 
-    unsigned int errorcode);
+    unsigned long errorcode);
 
 __attribute__ ((interrupt))
 void exception_handler_PF(struct interrupt_frame_t *frame, 
-    unsigned int errorcode);
+    unsigned long errorcode);
 
 #endif

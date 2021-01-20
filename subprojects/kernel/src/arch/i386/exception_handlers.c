@@ -14,7 +14,7 @@ void exception_handler_DE(struct interrupt_frame_t *frame) {
 
 __attribute__ ((interrupt))
 void exception_handler_GP(struct interrupt_frame_t *frame, 
-        unsigned int errorcode) {
+        unsigned long errorcode) {
 #ifdef KERNEL_DEBUG
     kio_printf("#GP Exceotion at %x (error %x)\n", frame->eip, errorcode);
 #endif
@@ -22,7 +22,7 @@ void exception_handler_GP(struct interrupt_frame_t *frame,
 
 __attribute__ ((interrupt))
 void exception_handler_PF(struct interrupt_frame_t *frame, 
-        unsigned int errorcode) {
+        unsigned long errorcode) {
 #ifdef KERNEL_DEBUG
     kio_printf("Page fault encountered at %x (error %x)\n", frame->eip,
         errorcode);

@@ -6,3 +6,9 @@ clean:
 
 compilecommands:
 	bear -- make
+
+bochsrun:
+	bochs
+
+qemurun: build/octos.img
+	qemu-system-i386 $^

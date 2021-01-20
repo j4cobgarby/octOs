@@ -26,15 +26,31 @@
 #define ATA_PIO_BUS0 0x1f0
 #define ATA_PIO_BUS0_STAT 0x3f6
 
+struct ata_drive_t {
+    uint8_t present;
+    uint32_t sector_count;
+};
+
+struct ata_bus_t {
+    struct ata_drive_t drives[2];
+    uint16_t io_port_base;
+    uint16_t io_ctrl_base;
+};
+
 void ata_pio_init();
 
 // Wait until the status byte AND mask is non zero
-void ata_pio_wait_status_set(uint8_t mask);
+void ata_pio_wait_status_set(struct ata_bus_t *bus, uint8_t mask);
 
 // Wait until the status byte AND mask is zero
-void ata_pio_wait_status_unset(uint8_t mask);
+void ata_pio_wait_status_unset(struct ata_bus_t *bus, uint8_t mask);
 
 void ata_pio_read_sectors(uint8_t sectors, uint32_t target, uint32_t lba);
 void ata_pio_write_sectors(uint8_t sectors, uint32_t source, uint32_t lba);
+
+void ata_pio_read(struct ata_bus_t *bus, uint8_t drv, uint32_t lba, 
+    uint8_t n, void *dest);
+void ata_pio_write(struct ata_bus_t *bus, uint8_t drv, uint32_t lba,
+    uint8_t n, void *src);
 
 #endif
