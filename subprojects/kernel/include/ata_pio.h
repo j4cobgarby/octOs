@@ -39,14 +39,13 @@ struct ata_bus_t {
 
 void ata_pio_init();
 
+uint8_t ata_pio_read_status(struct ata_bus_t *bus, uint8_t drv);
+
 // Wait until the status byte AND mask is non zero
-void ata_pio_wait_status_set(struct ata_bus_t *bus, uint8_t mask);
+void ata_pio_wait_status_set(struct ata_bus_t *bus, uint8_t drv, uint8_t mask);
 
 // Wait until the status byte AND mask is zero
-void ata_pio_wait_status_unset(struct ata_bus_t *bus, uint8_t mask);
-
-void ata_pio_read_sectors(uint8_t sectors, uint32_t target, uint32_t lba);
-void ata_pio_write_sectors(uint8_t sectors, uint32_t source, uint32_t lba);
+void ata_pio_wait_status_unset(struct ata_bus_t *bus, uint8_t drv, uint8_t mask);
 
 void ata_pio_read(struct ata_bus_t *bus, uint8_t drv, uint32_t lba, 
     uint8_t n, void *dest);
