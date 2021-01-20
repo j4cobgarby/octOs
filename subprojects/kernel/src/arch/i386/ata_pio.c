@@ -35,7 +35,6 @@ void ata_pio_wait_status_unset(struct ata_bus_t *bus, uint8_t mask) {
 
 void ata_pio_read(struct ata_bus_t *bus, uint8_t drv, uint32_t lba, uint8_t n,
         void *dest) {
-    kio_printf("1\n");
     ata_pio_wait_status_unset(bus, ATA_PIO_STATUS_BSY);
 
     outb(bus->io_port_base+ATA_PIO_SECT, n);
@@ -54,20 +53,15 @@ void ata_pio_read(struct ata_bus_t *bus, uint8_t drv, uint32_t lba, uint8_t n,
     uint16_t *target = (uint16_t*)dest;
 
     for (uint8_t i = 0; i < n; i++) {
-        kio_printf("2\n");
         ata_pio_wait_status_unset(bus, ATA_PIO_STATUS_BSY);
 
         // Wait for data to be available
-        kio_printf("3\n");
         ata_pio_wait_status_set(bus, ATA_PIO_STATUS_DRQ);
 
         // For each sector, read a sectors worth (256 words = 512 bytes)
         // of data to the target memory.
         for (int i = 0; i < 256; i++, target++) {
-            kio_printf(".");
             *target = inw(bus->io_port_base+ATA_PIO_DATA);
         }
-
-        kio_printf("4\n");
     }
 }
