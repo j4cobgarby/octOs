@@ -45,6 +45,10 @@ void kio_scroll(int dir);
 void kio_puts(const char* s); 
 // puts with attribute
 void kio_puts_attr(const char* s, const char attr); 
+// These are the same their counterparts without the '_n', but
+// only printing a certain amount of characters.
+void kio_puts_n(const char *s, uint32_t n);
+void kio_puts_n_attr(const char *s, uint32_t n, const char attr);
 // Print char c to screen
 void kio_putc(const char c); 
 // putc with attribute

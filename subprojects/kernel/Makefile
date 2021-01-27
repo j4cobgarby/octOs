@@ -11,7 +11,8 @@ asm_procs.c.o \
 main.asm.o \
 exception_handlers.c.o \
 idt.c.o \
-ata_pio.c.o
+ata_pio.c.o \
+FAT12.c.o
 
 all: octos.img
 

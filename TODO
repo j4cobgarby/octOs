@@ -2,9 +2,9 @@ DONE:
  Implement a few syscalls
  Keyboard input stub
  Implement basic physical mem manager
+ Implement memory management (paging)
 
 TO DO:
- Implement memory management (paging)
  Implement processes (scheduling, creation, deletion, etc.)
  Exception handlers to kill process if they do bad
  Write a 'process 0', to initialise everything

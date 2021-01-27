@@ -34,6 +34,17 @@ void kio_puts_attr(const char* s, const char attr) {
     kio_updatecurs();
 }
 
+void kio_puts_n(const char *s, uint32_t n) {
+    kio_puts_n_attr(s, n, KIO_ATTR_DEFAULT);
+}
+
+void kio_puts_n_attr(const char *s, uint32_t n, const char attr) {
+    for (uint32_t i = 0; i < n; i++) {
+        kio_putc_attr(s[i], attr);
+    }
+    kio_updatecurs();
+}
+
 void kio_putc(const char c) {
     kio_putc_attr(c, KIO_ATTR_DEFAULT);
 }

@@ -23,12 +23,13 @@
 #define ATA_PIO_STAT    0x7
 #define ATA_PIO_CMND    0x7
 
-#define ATA_PIO_BUS0 0x1f0
-#define ATA_PIO_BUS0_STAT 0x3f6
+#define ATA_CMD_READ    0x20
+#define ATA_CMD_WRITE   0x30
 
 struct ata_drive_t {
     uint8_t present;
     uint32_t sector_count;
+    uint16_t bytes_per_sector;
 };
 
 struct ata_bus_t {
