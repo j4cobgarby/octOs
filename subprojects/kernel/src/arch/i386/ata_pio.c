@@ -12,9 +12,47 @@ void ata_pio_init() {
     bus0.io_ctrl_base = 0x3f6;
 
     uint8_t *dest = pmm_alloc();
-    ata_pio_read(&bus0, 1, 0, 1, dest);
+    uint8_t *dest2 = pmm_alloc();
+    ata_pio_read(&bus0, 0, 0, 1, dest);
+    for (int i = 0; i < 512; i++) {
+        if (i % 64 == 0) kio_putc('\n');
+        if (dest[i] >= 32 && dest[i] <= 126) {
+            kio_putc(dest[i]);
+        } else {
+            kio_putc('.');
+        }
+    }
+    kio_printf("\n");
+    ata_pio_read(&bus0, 0, 2048, 1, dest2);
+    for (int i = 0; i < 512; i++) {
+        if (i % 64 == 0) kio_putc('\n');
+        if (dest2[i] >= 32 && dest2[i] <= 126) {
+            kio_putc(dest2[i]);
+        } else {
+            kio_putc('.');
+        }
+    }
 
-    struct fat12_bpb_t *bpb = (struct fat12_bpb_t*)(dest + 0x0b);
+    /* struct mbr_partition_t *partition_table = (struct mbr_partition_t*)(dest+0x1be);
+    for (int i = 0; i < 4; i++) {
+        kio_printf("Part. %d: %d -> %d (%x)\n", i, partition_table[i].lba_first,
+            partition_table[i].lba_first+partition_table[i].sect_count,
+            partition_table[i].type);
+    }
+
+    kio_printf("Reading sector: %d\n", partition_table[0].lba_first);
+    uint8_t *part1_0 = pmm_alloc();
+    ata_pio_read(&bus0, 0, 2048, 1, part1_0);
+    struct fat12_bpb_t *bpb = (struct fat12_bpb_t*)(part1_0+0x0b);
+    for (int i = 0; i < 512; i++) { // Read one sector
+        if (i % 48 == 0) kio_putc('\n');
+        kio_putc(part1_0[i]);
+    }
+    kio_printf("Rootdir entries: %d\n", bpb->rootdir_entries);
+    kio_printf("Bytes per sector: %d\n", bpb->bytes_per_sect);
+    kio_printf("Sectors per cluster: %d\n", bpb->sect_per_clust); */
+
+    /* struct fat12_bpb_t *bpb = (struct fat12_bpb_t*)(dest + 0x0b);
     struct fat12_ebr_t *ebr = (struct fat12_ebr_t*)(dest + 0x0b + sizeof(struct fat12_bpb_t));
     kio_printf("\
 Bytes per sector: %d\n\
@@ -54,7 +92,7 @@ Serial number: %x\n",
         kio_puts_n(rootdir[i].extension, 3);
         kio_putc('\n');
         kio_updatecurs();
-    }
+    } */
 }
 
 uint8_t ata_pio_read_status(struct ata_bus_t *bus, uint8_t drv) {
@@ -92,7 +130,7 @@ void ata_pio_read(struct ata_bus_t *bus, uint8_t drv, uint32_t lba, uint8_t n,
     outb(bus->io_port_base+ATA_PIO_SECT, n);
     outb(bus->io_port_base+ATA_PIO_LBAL, (uint8_t)lba);
     outb(bus->io_port_base+ATA_PIO_LBAM, (uint8_t)(lba >> 8));
-    outb(bus->io_port_base+ATA_PIO_LBAM, (uint8_t)(lba >> 16));
+    outb(bus->io_port_base+ATA_PIO_LBAH, (uint8_t)(lba >> 16));
     uint8_t drvreg = 0xe0; // bit 5-7 are set always
     drvreg |= drv << 4; // bit 4 = drive number
     drvreg |= (lba >> 24) & 0xf; // bits 0-3 = lba address of block
@@ -125,7 +163,7 @@ void ata_pio_write(struct ata_bus_t *bus, uint8_t drv, uint32_t lba, uint8_t n,
     outb(bus->io_port_base+ATA_PIO_SECT, n);
     outb(bus->io_port_base+ATA_PIO_LBAL, (uint8_t)lba);
     outb(bus->io_port_base+ATA_PIO_LBAM, (uint8_t)(lba >> 8));
-    outb(bus->io_port_base+ATA_PIO_LBAM, (uint8_t)(lba >> 16));
+    outb(bus->io_port_base+ATA_PIO_LBAH, (uint8_t)(lba >> 16));
     uint8_t drvreg = 0xe0; // bit 5-7 are set always
     drvreg |= drv << 4; // bit 4 = drive number
     drvreg |= (lba >> 24) & 0xf; // bits 0-3 = lba address of block
