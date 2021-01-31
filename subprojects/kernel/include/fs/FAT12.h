@@ -2,6 +2,7 @@
 #define FS_FAT12_H
 
 #include <stdint.h>
+#include "ata_pio.h"
 
 #define FAT12_ATTR_READONLY     0x01
 #define FAT12_ATTR_HIDDEN       0x02
@@ -11,7 +12,7 @@
 #define FAT12_ATTR_ARCHIVE      0X20
 
 // This structure will be present starting at address 0x0b in the first
-// sector of a fat12 disk
+// sector of a fat12 partition
 struct __attribute__((__packed__)) fat12_bpb_t {
     uint16_t    bytes_per_sect;
     uint8_t     sect_per_clust;
@@ -64,5 +65,6 @@ struct __attribute__((__packed__)) fat12_dir_entry_t {
 };
 
 uint16_t fat12_read_fat_entry(uint8_t *fattable, uint32_t i);
+void load_fat(struct ata_bus_t *bus, uint8_t drv, struct fat12_bpb_t *bpb, uint8_t *fattable);
 
 #endif

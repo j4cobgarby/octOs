@@ -34,6 +34,7 @@ struct ata_drive_t {
 
 struct ata_bus_t {
     struct ata_drive_t drives[2];
+    uint8_t active_drive;
     uint16_t io_port_base;
     uint16_t io_ctrl_base;
 };

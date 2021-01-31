@@ -1,5 +1,5 @@
 all:
-	cd subprojects/kernel && make -j$(shell nproc)
+	cd subprojects/kernel && make -j1
 
 clean:
 	cd subprojects/kernel && make clean
