@@ -3,11 +3,13 @@
 
 #include <stdint.h>
 
+#define DRIVETABLE_SIZE 128
+
 // dn refers to the drive number (0 is invalid)
 struct virtfs_t {
     char name[8];
 
-    int (*open)(const char *fname, int flags, int dn); // Return fd
+    int (*open)(const char *fname, int flags); // Return fd
     int (*close)(int fd);
 
     // Read/write AT A POSITION, not using the unix style seek/read
@@ -30,6 +32,6 @@ struct drive_t {
     char        name[24];
 };
 
-extern struct drive_t drives[256];
+extern struct drive_t drivetable[DRIVETABLE_SIZE];
 
 #endif
