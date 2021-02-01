@@ -5,6 +5,8 @@
 
 // dn refers to the drive number (0 is invalid)
 struct virtfs_t {
+    char name[8];
+
     int (*open)(const char *fname, int flags, int dn); // Return fd
     int (*close)(int fd);
 
@@ -25,7 +27,7 @@ struct drive_t {
     uint8_t     type;
     uint8_t     fs;
     uint8_t     attr;
-    char        name[16];
+    char        name[24];
 };
 
 #endif

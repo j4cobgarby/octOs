@@ -9,7 +9,13 @@ by numbers. For example, a path might look like:
     1:/myfolder/subfolder/hello.txt
 
 Which would access whatever filesystem is present on drive 1. Drive number 0 is
-reserved.
+reserved. Devices which can be read/written (like a serial console, for
+instance) will be accessed as a file, similar to UNIX, except that instead of
+the devices being in the /dev directory like it is in UNIX, the path to these
+devices will begin with the special character `%`, for example a serial console
+might be referenced with a path like this: `%console`. There can also be
+devices inside subdirectories, so something like this is allowed: `%vterms/0`,
+which will refer to the 1st virtual terminal (similar to Linux's `/dev/tty0`).
 
 Since a "drive" can be various different mediums, like an ATA hard disk, an
 ATAPI drive, a floppy disk, etc., a drive is represented by a generic drive
