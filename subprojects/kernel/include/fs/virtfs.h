@@ -18,6 +18,9 @@ struct virtfs_t {
 
     int (*mkdir)(const char *dname, int flags);
     int (*getpath)(int fd, char *path);
+
+    int (*rmdir)(const char *dname);
+    int (*rmfile)(int fd);
 };
 
 #define DRIVE_ATTR_PRESENT  0x01

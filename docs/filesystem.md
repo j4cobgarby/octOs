@@ -51,8 +51,23 @@ ext2, etc. As described earlier, this table is referenced by each drive in the
 drive table. Each entry in the fs table has the following properties:
 
  - `char name[8]`: An 8-byte string holding a human-readable name for the fs.
- - `int (*open)(const char *fname, int flags);`: Opens a file in the
+ - `int (*open)(const char *fname, int flags)`: Opens a file in the
         fs. The drive which the filesystem is read off is taken from the
         filename, since the first character of the filename is the drive id.
         This function should return a file descriptor to the newly opened file.
         More on file descriptors later.
+ - `int (*close)(int fd)`: Closes a file referred to by the file descriptor.
+        Should return 1 on success, otherwise an error code.
+ - `int (*read)(int fd, void *dest, uint32_t start, uint32_t n)`: Reads `n`
+        blocks from the file at `fd`, and stores them at the memory starting at
+        `dest`. The bytes from the file are read starting at position `start`.
+        Should return 1 on success, otherwise an error code.
+ - `int (*mkdir)(const char *dname, int flags)`: Creates a new directory in the
+        filesystem at a given path. `flags` is used to modify the properties of
+        the new directory. Should return 1 on success, otherwise an error code.
+ - `int (*getpath)(int fd, char *path)`: Returns the absolute path to a file,
+        beginning with the drive number.
+ - `int (*rmdir)(const char *dname*)`: Deletes a directory. If it can't be
+        deleted, return an error code, otherwise return 1.
+ - `int (*rmfile)(int fd)`: Removes the file at the given file descriptor.
+        Returns 1 on success, or an error code otherwise.
