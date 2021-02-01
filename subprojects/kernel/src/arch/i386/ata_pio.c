@@ -12,28 +12,9 @@ void ata_pio_init() {
     bus0.io_ctrl_base = 0x3f6;
 
     uint8_t *dest = pmm_alloc();
-    uint8_t *dest2 = pmm_alloc();
     ata_pio_read(&bus0, 0, 0, 1, dest);
-    for (int i = 0; i < 512; i++) {
-        if (i % 64 == 0) kio_putc('\n');
-        if (dest[i] >= 32 && dest[i] <= 126) {
-            kio_putc(dest[i]);
-        } else {
-            kio_putc('.');
-        }
-    }
-    kio_printf("\n");
-    ata_pio_read(&bus0, 0, 2048, 1, dest2);
-    for (int i = 0; i < 512; i++) {
-        if (i % 64 == 0) kio_putc('\n');
-        if (dest2[i] >= 32 && dest2[i] <= 126) {
-            kio_putc(dest2[i]);
-        } else {
-            kio_putc('.');
-        }
-    }
 
-    /* struct mbr_partition_t *partition_table = (struct mbr_partition_t*)(dest+0x1be);
+    struct mbr_partition_t *partition_table = (struct mbr_partition_t*)(dest+0x1be);
     for (int i = 0; i < 4; i++) {
         kio_printf("Part. %d: %d -> %d (%x)\n", i, partition_table[i].lba_first,
             partition_table[i].lba_first+partition_table[i].sect_count,
@@ -44,13 +25,28 @@ void ata_pio_init() {
     uint8_t *part1_0 = pmm_alloc();
     ata_pio_read(&bus0, 0, 2048, 1, part1_0);
     struct fat12_bpb_t *bpb = (struct fat12_bpb_t*)(part1_0+0x0b);
-    for (int i = 0; i < 512; i++) { // Read one sector
-        if (i % 48 == 0) kio_putc('\n');
-        kio_putc(part1_0[i]);
-    }
     kio_printf("Rootdir entries: %d\n", bpb->rootdir_entries);
     kio_printf("Bytes per sector: %d\n", bpb->bytes_per_sect);
-    kio_printf("Sectors per cluster: %d\n", bpb->sect_per_clust); */
+    kio_printf("Sectors per cluster: %d\n", bpb->sect_per_clust);
+
+    uint16_t blocks_per_fat = (bpb->bytes_per_sect*bpb->sect_per_fat)/4096;
+    kio_printf("Blocks per FAT: %d\n", blocks_per_fat);
+    uint8_t *fat1 = pmm_allocs(blocks_per_fat);
+    ata_pio_read(&bus0, 0, bpb->resvd_sects+2048, blocks_per_fat, fat1);
+    kio_printf("FAT1 @ %x\n", (uint32_t)fat1);
+    uint32_t rootdir_sect = bpb->resvd_sects + (bpb->sect_per_fat*bpb->number_of_fats);
+    struct fat12_dir_entry_t *rootdir = pmm_alloc();
+    ata_pio_read(&bus0, 0, rootdir_sect+2048, 1, rootdir);
+    kio_printf("Root dir sector: %d\n", rootdir_sect);
+    for (int i = 0; i < bpb->rootdir_entries; i++) {
+        if (rootdir[i].filename[0] == 0x00) break;
+        if ((uint8_t)rootdir[i].filename[0] == 0xe5) continue;
+        if (rootdir[i].attr == 0x0f) continue;
+        kio_puts_n(rootdir[i].filename, 8);
+        kio_puts_n(rootdir[i].extension, 3);
+        kio_printf("\nATTR: %x, Cluster: %d\n", rootdir[i].attr, rootdir[i].cluster_start);
+        kio_updatecurs();
+    }
 
     /* struct fat12_bpb_t *bpb = (struct fat12_bpb_t*)(dest + 0x0b);
     struct fat12_ebr_t *ebr = (struct fat12_ebr_t*)(dest + 0x0b + sizeof(struct fat12_bpb_t));
