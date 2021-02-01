@@ -30,4 +30,6 @@ struct drive_t {
     char        name[24];
 };
 
+extern struct drive_t drives[256];
+
 #endif
