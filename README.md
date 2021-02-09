@@ -6,6 +6,11 @@
 I've made two kernels in the past but every time I make one I learn things, so
 here's another. 
 
+## Documentation
+
+I've written about various aspects of the operating system in the [docs](/docs)
+directory.
+
 ## Building
 
 You need the following software:
