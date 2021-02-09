@@ -6,6 +6,8 @@
 #include "fs/FAT12.h"
 #include "fs/MBR.h"
 
+#include <klib.h>
+
 void ata_pio_init() {
     struct ata_bus_t bus0;
     bus0.io_port_base = 0x1f0;

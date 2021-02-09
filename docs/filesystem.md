@@ -8,8 +8,8 @@ by numbers. For example, a path might look like:
 
     1:/myfolder/subfolder/hello.txt
 
-Which would access whatever filesystem is present on drive 1. Drive number 0 is
-reserved. Devices which can be read/written (like a serial console, for
+Which would access whatever filesystem is present on drive 1.
+Devices which can be read/written (like a serial console, for
 instance) will be accessed as a file, similar to UNIX, except that instead of
 the devices being in the /dev directory like it is in UNIX, the path to these
 devices will begin with the special character `%`, for example a serial console
@@ -26,6 +26,10 @@ struct. A drive has the following properties (`drive_t`):
  - Type of drive
  - Filesystem ID (More about this later)
  - Any attributes
+ - A pointer to a structure used for parameters for the specific drive, for 
+       example for an ATA drive the parameters would specify the bus IO address
+       and the drive number on the bus.
+       
 
 An array of open drives is maintained in an array (`drivetable`), indexed on
 the drive number.
@@ -33,7 +37,11 @@ the drive number.
 The "type" of the drive will represent by what means the drive can be read/
 written. The type number will refer to an entry in a table of drive types, and
 each drive type will contain various functions for operating on that type of
-drive.
+drive (`drivetype_t`)
+
+ - The name of the drive type (e.g. ATA PIO-mode)
+ - A pointer to a function to read a sector 
+ - A pointer to a function to write to a sector
 
 The filesystem ID is described more below.
 
@@ -71,3 +79,24 @@ drive table. Each entry in the fs table has the following properties:
         deleted, return an error code, otherwise return 1.
  - `int (*rmfile)(int fd)`: Removes the file at the given file descriptor.
         Returns 1 on success, or an error code otherwise.
+       
+## How it fits together
+
+If, for example, a user program uses the syscall `open("2:/user/test.txt")`,
+oct will first look at the drive number of "2", and get the drive entry in the
+drive table at index 2. From this drive entry, it will look at the `fs` field,
+to find out which filesystem type that drive is using. 
+
+The filesystem's `open`
+function will create a new file descriptor in the dile descriptor table, which
+contains the drive number the file is on. That file descriptor can then be used
+later by, for example, the `read` system call, which will call the filesystem's
+`read` function with that file descriptor as a parameter. At that point, the
+filesystem's `read` function knows the drive to read from, as well as the path
+of the file.
+
+Once a user program is done with a file, it can call the `close` system call,
+to remove the file descriptor and the information associated with it.
+
+open:
+new fd

@@ -1,5 +1,5 @@
 all:
-	cd subprojects/kernel && make -j1
+	cd subprojects/kernel && make
 
 clean:
 	cd subprojects/kernel && make clean
@@ -10,5 +10,5 @@ compilecommands:
 bochsrun:
 	bochs
 
-qemurun: build/octos.img
-	qemu-system-i386 $^
+qemurun:
+	qemu-system-i386 build/disk.img
