@@ -17,7 +17,7 @@ void *kmemcpy(void *dest, void *src, size_t n) {
 }
 
 char *kstrchr(const char *s, char c) {
-    for (; *s != c; s++);
+    for (; *s && *s != c; s++);
     return (char*)s;
 }
 
