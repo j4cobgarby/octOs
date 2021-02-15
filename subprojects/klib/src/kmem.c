@@ -15,3 +15,13 @@ void *kmemcpy(void *dest, void *src, size_t n) {
 
     return dest;
 }
+
+char *kstrchr(const char *s, char c) {
+    for (; *s != c; s++);
+    return (char*)s;
+}
+
+char *kstrrchr(const char *s, char c) {
+    //TODO: Implement this
+    return (char*)s;
+}

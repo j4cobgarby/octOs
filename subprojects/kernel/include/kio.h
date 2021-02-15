@@ -6,6 +6,42 @@
 #include <stdint.h>
 #include <stdarg.h>
 
+enum vga_color {
+	VGA_COLOR_BLACK = 0,
+	VGA_COLOR_BLUE = 1,
+	VGA_COLOR_GREEN = 2,
+	VGA_COLOR_CYAN = 3,
+	VGA_COLOR_RED = 4,
+	VGA_COLOR_MAGENTA = 5,
+	VGA_COLOR_BROWN = 6,
+	VGA_COLOR_LIGHT_GREY = 7,
+	VGA_COLOR_DARK_GREY = 8,
+	VGA_COLOR_LIGHT_BLUE = 9,
+	VGA_COLOR_LIGHT_GREEN = 10,
+	VGA_COLOR_LIGHT_CYAN = 11,
+	VGA_COLOR_LIGHT_RED = 12,
+	VGA_COLOR_LIGHT_MAGENTA = 13,
+	VGA_COLOR_LIGHT_BROWN = 14,
+	VGA_COLOR_WHITE = 15,
+};
+
+#define VGA_COL_BLACK       0x0
+#define VGA_COL_BLUE        0x1
+#define VGA_COL_GREEN       0x2
+#define VGA_COL_CYAN        0x3
+#define VGA_COL_RED         0x4
+#define VGA_COL_MAGENTA     0x5
+#define VGA_COL_BROWN       0x6
+#define VGA_COL_LIGHTGREY   0x7
+#define VGA_COL_DARKGREY    0x8
+#define VGA_COL_LIGHTBLUE   0x9
+#define VGA_COL_LIGHTGREEN  0xa
+#define VGA_COL_LIGHTCYAN   0xb
+#define VGA_COL_LIGHTRED    0xc
+#define VGA_COL_LIGHTMAGENTA 0xd
+#define VGA_COL_LIGHTBROWN  0xe
+#define VGA_COL_WHITE       0xf
+
 #define KIO_VMEM 0xb8000
 #define KIO_ROWS 25
 #define KIO_COLS 80
@@ -13,17 +49,21 @@
 #define KIO_DIRECTION_DOWN  0b0010
 #define KIO_DIRECTION_LEFT  0b0100
 #define KIO_DIRECTION_RIGHT 0b1000
-#define KIO_ATTR_DEFAULT    0x0f
-#define KIO_ATTR_ERROR      0x04
-#define KIO_ATTR_WARNING    0xee
+#define KIO_ATTR_DEFAULT    VGA_COL_BLACK << 4 | VGA_COL_WHITE
+#define KIO_ATTR_ERROR      VGA_COL_BLACK << 4 | VGA_COL_RED
+#define KIO_ATTR_WARNING    VGA_COL_BLACK << 4 | VGA_COL_LIGHTBROWN
+#define KIO_ATTR_SUBSYS     VGA_COL_BLACK << 4 | VGA_COL_MAGENTA
 #define KIO_SCROLL_UP       1
 #define KIO_SCROLL_DOWN     0
 
-#define KIO_ERRORMSG(msg)   kio_puts_attr("\n* ERROR *", KIO_ATTR_ERROR); \
+#define KIO_ERRORMSG(msg)   kio_puts_attr("[ERROR]", KIO_ATTR_ERROR); \
                             kio_putc(' '); kio_puts(msg);
 
-#define KIO_ERRORWARNING(msg)   kio_puts_attr("\n* WARN *", KIO_ATTR_WARNING); \
+#define KIO_ERRORWARNING(msg)   kio_puts_attr("[WARNING]", KIO_ATTR_WARNING); \
                                 kio_putc(' '); kio_puts(msg);
+
+#define KIO_SUBSYSTEM_MSG(subsys, msg)  kio_puts_attr(subsys, KIO_ATTR_SUBSYS); \
+                                        kio_printf(" %s", msg);
 
 #define KIO_SETCHARAT(row, col, c) *(char*)(KIO_VMEM + 2 * (KIO_COLS * row + col)) = c;
 #define KIO_SETATTRAT(row, col, a) *(char*)(1 + KIO_VMEM + 2 * (KIO_COLS * row + col)) = a;

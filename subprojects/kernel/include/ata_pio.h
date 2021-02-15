@@ -30,13 +30,6 @@ struct ata_drive_t {
     uint16_t io_port_base;
     uint16_t io_ctrl_base;
     uint8_t drive_n; // 0 for master, 1 for slave
-
-    // The first sector of the drive to read for, to deal with partitions
-    uint32_t first_sector;
-    // The total amount of sectors in the drive (or partition)
-    uint32_t sector_count;
-    // Amount of bytes in 1 sector
-    uint16_t bytes_per_sector;
 };
 
 struct ata_bus_t {

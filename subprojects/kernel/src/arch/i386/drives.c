@@ -36,6 +36,6 @@ void drivetypes_init() {
     int atapio_id = register_drivetype(512, &ata_pio_virtfs_rdsect, &ata_pio_virtfs_wrsect);
     ata_pio_init();
 
-    kio_printf("Initialised drive types.\n");
+    kio_printf("[VFS] Initialised drive types.\n");
     kio_printf("ATA PIO id = %d\n", atapio_id);
 }

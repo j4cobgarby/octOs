@@ -1,5 +1,6 @@
 #include "fs/fat16.h"
 #include "fs/virtfs.h"
+#include "kio.h"
 #include "klib.h"
 
 uint16_t fat16_read_fat_entry(uint8_t *fattable, uint32_t i) {
@@ -28,11 +29,18 @@ void fat16_init() {
     kmemcpy(fsd.name, "FAT16", 6); // Copy the name (and null terminator)
     register_filesystem(fsd);
 
-    kio_printf("Initialised FAT16 filesystem.\n");
+    kio_printf("[FAT16] Initialised.\n");
 }
 
+/*
+`path` will be of the form drive:path_in_drive, so it's known which drive the
+file is on. The function will look into the drive table and find out which
+drive type is present on that drive.
+*/
 int fat16_open(const char *path, int flags) {
-    kio_printf("Opening path %s\n", path);
+    char *path_in_drive = kstrchr(path, ':');
+    (path_in_drive++)[0] = 0;
+    kio_printf("Opening path %s on drive %s\n", path_in_drive, path);
     return 0;
 }
 

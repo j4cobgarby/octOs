@@ -34,6 +34,14 @@ struct drive_t {
     uint8_t attr;
     int     type; // The type of drive
     int     fs; // The type of filesystem present on the drive
+
+    // The first sector of the drive to read for, to deal with partitions
+    uint32_t first_sector;
+    // The total amount of sectors in the drive (or partition)
+    uint32_t sector_count;
+    // Amount of bytes in 1 sector
+    uint16_t bytes_per_sector;
+
     void    *drive_param; // Parameter passed to the drive's functions
     char    name[16]; // The name of the drive
 };

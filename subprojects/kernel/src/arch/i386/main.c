@@ -6,4 +6,6 @@
 void kmain() {
     drivetypes_init();
     fat16_init();
+
+    fat16_open("3:/user/jacob/myfile.txt", 0);
 }

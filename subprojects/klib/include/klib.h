@@ -26,6 +26,8 @@ void *krealloc(void *ptr, size_t size);
 
 void *kmemset(void *ptr, char c, size_t n);
 void *kmemcpy(void *dest, void *src, size_t n);
+char *kstrchr(const char *s, char c);
+char *kstrrchr(const char *s, char c);
 
 double katof(const char *);
 int katoi(const char *);
