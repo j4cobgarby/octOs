@@ -42,6 +42,12 @@ following properties: (`block_meta_t`)
  - The amount of free subblocks in the block
  - An array of bytes representing each subblock
 
-And then, the rest of the block is available for `kmalloc` to allocate memory in.
+And then, the rest of the block is available for `kmalloc` to allocate memory
+in. In the subblock array, a value of 0 represents a free subblock, and every
+other value represents an allocated subblock. Neighbouring allocations of
+subblocks must be different values, so that `kfree` can differentiate between
+them.
 
 ### In user processes
+
+TODO

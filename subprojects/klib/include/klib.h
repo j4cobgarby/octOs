@@ -24,12 +24,15 @@ void *kmalloc(size_t size);
 void kfree(void *ptr);
 void *krealloc(void *ptr, size_t size);
 
+void *kmemset(void *ptr, char c, size_t n);
+void *kmemcpy(void *dest, void *src, size_t n);
+
 double katof(const char *);
 int katoi(const char *);
 long katol(const char *);
 long long katoll(const char *);
 
-void srand(uint32_t);
-int rand();
+void ksrand(uint32_t);
+int krand();
 
 #endif

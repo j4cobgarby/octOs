@@ -45,7 +45,7 @@ extern kio_init
 extern kio_cls
 extern kio_print_kernel_banner
 extern register_exceptions
-extern ata_pio_init
+extern kmain
 
 _start: ; kernel entry point
     ;warning: don't touch ebx until after pmm_init
@@ -76,7 +76,7 @@ _start: ; kernel entry point
     call register_exceptions
     call pic_init
 
-    call ata_pio_init
+    call kmain
 
     jmp hltlp
 .end:

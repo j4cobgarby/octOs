@@ -13,7 +13,10 @@ main.asm.o \
 exception_handlers.o \
 idt.o \
 ata_pio.o \
-FAT12.o
+fat16.o \
+drives.o \
+virtfs.o \
+main.o
 
 all: disk.img
 

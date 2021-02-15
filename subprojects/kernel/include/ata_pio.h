@@ -27,13 +27,19 @@
 #define ATA_CMD_WRITE   0x30
 
 struct ata_drive_t {
-    uint8_t present;
+    uint16_t io_port_base;
+    uint16_t io_ctrl_base;
+    uint8_t drive_n; // 0 for master, 1 for slave
+
+    // The first sector of the drive to read for, to deal with partitions
+    uint32_t first_sector;
+    // The total amount of sectors in the drive (or partition)
     uint32_t sector_count;
+    // Amount of bytes in 1 sector
     uint16_t bytes_per_sector;
 };
 
 struct ata_bus_t {
-    struct ata_drive_t drives[2];
     uint8_t active_drive;
     uint16_t io_port_base;
     uint16_t io_ctrl_base;
@@ -41,17 +47,19 @@ struct ata_bus_t {
 
 void ata_pio_init();
 
-uint8_t ata_pio_read_status(struct ata_bus_t *bus, uint8_t drv);
+uint8_t ata_pio_read_status(struct ata_drive_t *drv);
 
 // Wait until the status byte AND mask is non zero
-void ata_pio_wait_status_set(struct ata_bus_t *bus, uint8_t drv, uint8_t mask);
+void ata_pio_wait_status_set(struct ata_drive_t *drv, uint8_t mask);
 
 // Wait until the status byte AND mask is zero
-void ata_pio_wait_status_unset(struct ata_bus_t *bus, uint8_t drv, uint8_t mask);
+void ata_pio_wait_status_unset(struct ata_drive_t *drv, uint8_t mask);
 
-void ata_pio_read(struct ata_bus_t *bus, uint8_t drv, uint32_t lba, 
-    uint8_t n, void *dest);
-void ata_pio_write(struct ata_bus_t *bus, uint8_t drv, uint32_t lba,
-    uint8_t n, void *src);
+void ata_pio_rd(struct ata_drive_t *drv, uint32_t lba, uint8_t n, void *dest);
+void ata_pio_wr(struct ata_drive_t *drv, uint32_t lba, uint8_t n, void *src);
+
+// Functions for the virtual filesystem interface
+void ata_pio_virtfs_rdsect(uint32_t lba, uint8_t count, void *dest, void *param);
+void ata_pio_virtfs_wrsect(uint32_t lba, uint8_t count, void *src, void *param);
 
 #endif

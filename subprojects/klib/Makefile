@@ -2,7 +2,8 @@ CC = i686-elf-gcc
 CFLAGS = -Wall -Wextra -ffreestanding -I include -I ../kernel/include -O2
 BUILDDIR=../../build/klib
 
-OBJS = kheap.o
+OBJS = kheap.o \
+kmem.o
 
 all: $(OBJS)
 

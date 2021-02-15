@@ -3,25 +3,28 @@
 
 #include <stdint.h>
 
-#define DRIVETABLE_SIZE 128
-#define PATH_MAX_LEN    248
+#define DRIVETABLE_SIZE         32
+#define DRIVETYPETABLE_SIZE     32
+#define FSDTABLE_SIZE           8
+#define PATH_MAX_LEN            248
+#define FSD_NAME_LEN            10
 
 // dn refers to the drive number (0 is invalid)
-struct virtfs_t {
-    char name[8];
+struct filesystemdescriptor_t {
+    char name[FSD_NAME_LEN];
 
-    int (*open)(const char *fname, int flags); // Return fd
+    int (*open)(const char *path, int flags); // Return fd
     int (*close)(int fd);
 
     // Read/write AT A POSITION, not using the unix style seek/read
     int (*read)(int fd, void *dest, uint32_t start, uint32_t n);
     int (*write)(int fd, void *src, uint32_t start, uint32_t n);
 
-    int (*mkdir)(const char *dname, int flags);
+    int (*mkdir)(const char *path, int flags);
     int (*getpath)(int fd, char *path);
 
-    int (*rmdir)(const char *dname);
-    int (*rmfile)(int fd);
+    int (*rmdir)(const char *path);
+    int (*rmfile)(const char *path);
 };
 
 #define DRIVE_ATTR_PRESENT  0x01
@@ -29,11 +32,9 @@ struct virtfs_t {
 
 struct drive_t {
     uint8_t attr;
-    uint16_t phy_sect_size;
-    uint16_t log_sect_size;
-    int     type; // The type of drive, for the filesystem to know how to read blocks
+    int     type; // The type of drive
     int     fs; // The type of filesystem present on the drive
-    void    *type_param; // Parameter passed to the filesystem's functions
+    void    *drive_param; // Parameter passed to the drive's functions
     char    name[16]; // The name of the drive
 };
 
@@ -41,8 +42,6 @@ struct drive_t {
 // each process's file descriptors can start at 0. Each process has its own
 // fd table, maintained by the kernel, which contains lots of this struct.
 #define FD_ATTR_PRESENT     0x01
-
-#define FD_TABLE_LEN    
 
 struct fd_t {
     uint8_t attr;
@@ -54,15 +53,29 @@ struct fd_t {
 struct intern_fd_t {
     uint8_t attr;
     int drive;
-    char path[PATH_MAX_LEN]; // The path to the file (excluding the drive identifier)
+    char path[PATH_MAX_LEN]; // The path to the file within the drive
 };
 
 struct drivetype_t {
-    char name[12];
-    void (*rdsect)(uint32_t bladdr, uint8_t count, void *dest);
-    void (*wrsect)(uint32_t bladdr, uint8_t count, void *src);
+    unsigned int blocksize;
+    void (*rdsect)(uint32_t lba, uint8_t count, void *dest, void *param);
+    void (*wrsect)(uint32_t lba, uint8_t count, void *src, void *param);
 };
 
 extern struct drive_t drivetable[DRIVETABLE_SIZE];
+extern struct drivetype_t drivetypetable[DRIVETYPETABLE_SIZE];
+extern struct filesystemdescriptor_t fsdtable[FSDTABLE_SIZE];
+
+int register_drivetype(unsigned int blocksize, 
+    void (*rdsect)(uint32_t, uint8_t, void*, void*), 
+    void (*wrsect)(uint32_t, uint8_t, void*, void*));
+
+int register_drive(int drivetype, int fstype, void *param,
+    char name[16]);
+
+int register_filesystem(struct filesystemdescriptor_t fs);
+
+void vfs_init();
+void drivetypes_init();
 
 #endif
