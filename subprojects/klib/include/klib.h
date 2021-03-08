@@ -28,6 +28,15 @@ void *kmemset(void *ptr, char c, size_t n);
 void *kmemcpy(void *dest, void *src, size_t n);
 char *kstrchr(const char *s, char c);
 char *kstrrchr(const char *s, char c);
+size_t kstrlen(const char *s);
+
+/*
+Returns 
+ - 0, if s1 and s2 are equal
+ - a negative value, if s1 < s2
+ - a positive value, if s1 > s2
+*/
+int kstrcmp(const char *s1, const char *s2);
 
 double katof(const char *);
 int katoi(const char *);

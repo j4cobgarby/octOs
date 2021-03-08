@@ -70,6 +70,8 @@ enum vga_color {
 #define KIO_SETCHAR(c) *(char*)(KIO_VMEM + 2 * (KIO_COLS * kio_row + kio_col)) = c;
 #define KIO_SETATTR(a) *(char*)(1 + KIO_VMEM + 2 * (KIO_COLS * kio_row + kio_col)) = a;
 
+#define KIO_PUTDEC_MAX_DIGITS 10
+
 extern uint16_t kio_row;
 extern uint16_t kio_col;
 
@@ -100,7 +102,7 @@ void kio_putbin(uint32_t n);
 // Print n to screen as binary, only bits between lobit and hibit inclusive
 void kio_putbin_bounds(uint32_t n, uint32_t lobit, uint32_t hibit);
 // Print n to screen, represented as decimal
-void kio_putdec(uint32_t n);
+void kio_putdec(int32_t n);
 // Print a formatted string
 void kio_printf(char *fmt, ...);
 // Move the cursor. dir is 0 or more KIO_DIRECTION's or'd together.
