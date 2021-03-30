@@ -21,15 +21,15 @@ void pmm_init(uint32_t* mboot_info) {
     kio_printf("[PMM] kernel limits: %x -> %x\n", 
         (uint32_t)(&_kernel_start), (uint32_t)(&_kernel_end));
 #endif
-    kio_puts("[PMM] Initialising bitmap...");
+    kio_puts("[PMM] Initialising bitmap...\n");
 
     if ((*mboot_info) & 0x1) { // mem_lower and mem_upper are valid
         mem_lower = mboot_info[1]; // lower memory KB
         mem_upper = mboot_info[2]; // upper memory KB
 #ifdef KERNEL_DEBUG
-        kio_printf("\nPMM Bitmap address: %x\n", (uint32_t)&pmm_bitmap);
-        kio_printf("Lower memory limit: %dKB\n", mem_lower);
-        kio_printf("Upper memory limit: %dKB\n", mem_upper);
+        kio_printf("[PMM] Bitmap address: %x\n", (uint32_t)&pmm_bitmap);
+        kio_printf("[PMM] Lower memory limit: %dKB\n", mem_lower);
+        kio_printf("[PMM] Upper memory limit: %dKB\n", mem_upper);
 #endif
     } else {
         KIO_ERRORMSG("[PMM] Multiboot header didn't provide memory limits.\n");
@@ -45,16 +45,16 @@ void pmm_init(uint32_t* mboot_info) {
         pmm_set(i);
     }
 
-    kio_puts("Done.\n");
+    kio_puts("[PMM] Done.\n");
 
     if ((*mboot_info) & 0x40) {
-        kio_puts("[PMM] Reading memory map...");
+        kio_puts("[PMM] Reading memory map...\n");
 
         mmap_length = mboot_info[11];
         mmap_addr = mboot_info[12];
 
 #ifdef KERNEL_DEBUG
-        kio_printf("\n[PMM] mmap addr: %x, mmap length: %d\n", mmap_addr, mmap_length);
+        kio_printf("[PMM] mmap addr: %x, mmap length: %d\n", mmap_addr, mmap_length);
 #endif
 
         for (mmap_entry_start = (uint32_t*)mmap_addr
@@ -70,7 +70,7 @@ void pmm_init(uint32_t* mboot_info) {
             }
 
 #ifdef KERNEL_DEBUG
-            kio_printf("- Start: %x Length: %x", entry_base, entry_length);
+            kio_printf("[PMM] - Start: %x Length: %x", entry_base, entry_length);
             
             switch (entry_type) {
             case 1:
@@ -93,9 +93,9 @@ void pmm_init(uint32_t* mboot_info) {
 #endif
         }
 
-        kio_puts("Done.\n");
+        kio_puts("[PMM] Done.\n");
     } else {
-        kio_puts("Multiboot header didn't provide memory map.\n");
+        kio_puts("[PMM] Multiboot header didn't provide memory map.\n");
         while(1);
     }
 

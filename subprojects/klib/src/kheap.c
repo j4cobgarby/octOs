@@ -51,7 +51,6 @@ void *kmalloc(size_t size) {
 
     if (_kheap_first == NULL) {
         _kheap_add_block(pmm_alloc());
-        kio_printf("New block @ %x\n", _kheap_first);
     }
 
     for (current_block = _kheap_first; current_block != NULL; 

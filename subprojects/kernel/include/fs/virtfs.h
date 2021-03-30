@@ -3,15 +3,20 @@
 
 #include <stdint.h>
 
+#include "klib.h"
+
 #define DRIVETABLE_SIZE         32
 #define DRIVETYPETABLE_SIZE     32
+#define DRIVETYPE_NAME_LEN      16
 #define FSDTABLE_SIZE           8
 #define PATH_MAX_LEN            248
 #define FSD_NAME_LEN            10
+#define IFDTABLE_SIZE           128
 
 // dn refers to the drive number (0 is invalid)
 struct filesystemdescriptor_t {
-    char name[FSD_NAME_LEN];
+    // `name` must be a C-string (null-terminated)
+    char name[FSD_NAME_LEN]; // if name[0] == 0, this fsd is not in use.
 
     int (*open)(const char *path, int flags); // Return fd
     int (*close)(int fd);
@@ -35,15 +40,7 @@ struct drive_t {
     int     type; // The type of drive
     int     fs; // The type of filesystem present on the drive
 
-    // The first sector of the drive to read for, to deal with partitions
-    uint32_t first_sector;
-    // The total amount of sectors in the drive (or partition)
-    uint32_t sector_count;
-    // Amount of bytes in 1 sector
-    uint16_t bytes_per_sector;
-
     void    *drive_param; // Parameter passed to the drive's functions
-    char    name[16]; // The name of the drive
 };
 
 // This is the sort of file descriptor that a process would know about, so that
@@ -65,7 +62,8 @@ struct intern_fd_t {
 };
 
 struct drivetype_t {
-    unsigned int blocksize;
+    char name[DRIVETYPE_NAME_LEN];
+    unsigned int bytespersector;
     void (*rdsect)(uint32_t lba, uint8_t count, void *dest, void *param);
     void (*wrsect)(uint32_t lba, uint8_t count, void *src, void *param);
 };
@@ -73,15 +71,24 @@ struct drivetype_t {
 extern struct drive_t drivetable[DRIVETABLE_SIZE];
 extern struct drivetype_t drivetypetable[DRIVETYPETABLE_SIZE];
 extern struct filesystemdescriptor_t fsdtable[FSDTABLE_SIZE];
+extern struct intern_fd_t ifdtable[IFDTABLE_SIZE];
 
 int register_drivetype(unsigned int blocksize, 
     void (*rdsect)(uint32_t, uint8_t, void*, void*), 
-    void (*wrsect)(uint32_t, uint8_t, void*, void*));
+    void (*wrsect)(uint32_t, uint8_t, void*, void*),
+    char name[DRIVETYPE_NAME_LEN]);
 
-int register_drive(int drivetype, int fstype, void *param,
-    char name[16]);
+int register_drive(int drivetype, int fstype, void *param);
 
 int register_filesystem(struct filesystemdescriptor_t fs);
+
+// Finds the index of a fsd with a given name in fsdtable
+// Returns the index if it exists, otherwise returns -1
+int get_filesystem_index(const char *name);
+int get_drivetype_index(const char *name);
+
+int set_ifd(uint8_t attr, int drive, char path[PATH_MAX_LEN]);
+int del_ifd(int ifd);
 
 void vfs_init();
 void drivetypes_init();

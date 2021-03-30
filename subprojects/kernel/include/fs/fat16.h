@@ -66,6 +66,11 @@ struct __attribute__((__packed__)) fat16_dir_entry_t {
     uint32_t bytes;
 };
 
+struct fat16_mount_t {
+    struct drive_t mounted_drive;
+    struct fat16_bpb_t param_block;
+};
+
 uint16_t fat16_read_fat_entry(uint8_t *fattable, uint32_t i);
 void load_fat(struct ata_bus_t *bus, uint8_t drv, struct fat16_bpb_t *bpb, uint8_t *fattable);
 

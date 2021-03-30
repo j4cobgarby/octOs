@@ -4,7 +4,7 @@
 __attribute__ ((interrupt))
 void exception_handler_DE(struct interrupt_frame_t *frame) {
 #ifdef KERNEL_DEBUG
-    kio_printf("Div by zero at %x :(\n", frame->eip);
+    kio_printf("[OCT] Div by zero at %x :(\n", frame->eip);
 #endif
 
     while (1) {
@@ -16,7 +16,7 @@ __attribute__ ((interrupt))
 void exception_handler_GP(struct interrupt_frame_t *frame, 
         unsigned long errorcode) {
 #ifdef KERNEL_DEBUG
-    kio_printf("#GP Exceotion at %x (error %x)\n", frame->eip, errorcode);
+    kio_printf("[OCT] #GP Exception at %x (error %x)\n", frame->eip, errorcode);
 #endif
 }
 
@@ -24,7 +24,7 @@ __attribute__ ((interrupt))
 void exception_handler_PF(struct interrupt_frame_t *frame, 
         unsigned long errorcode) {
 #ifdef KERNEL_DEBUG
-    kio_printf("Page fault encountered at %x (error %x)\n", frame->eip,
+    kio_printf("[OCT] Page fault encountered at %x (error %x)\n", frame->eip,
         errorcode);
 #endif
 

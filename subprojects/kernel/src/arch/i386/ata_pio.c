@@ -1,6 +1,7 @@
 #include "ata_pio.h"
 #include "asm_procs.h"
 
+#include "fs/virtfs.h"
 #include "kio.h"
 #include "pmm.h"
 #include "fs/fat16.h"
@@ -9,6 +10,7 @@
 #include <klib.h>
 
 void ata_pio_init() {
+    ata_pio_scandrives();
 #if 0
     struct ata_bus_t bus0;
     bus0.io_port_base = 0x1f0;
@@ -118,7 +120,7 @@ void ata_pio_wait_status_unset(struct ata_drive_t *drv, uint8_t mask) {
 
 void ata_pio_rd(struct ata_drive_t *drv, uint32_t lba, uint8_t n, void *dest) {
     uint8_t drv_reg = 0xe0;
-    uint32_t *target = (uint32_t *)dest;
+    uint16_t *target = (uint16_t *)dest;
 
     // bit 4 of the drive register is the drive number (0 or 1)
     drv_reg |= drv->drive_n << 4; 
@@ -126,6 +128,7 @@ void ata_pio_rd(struct ata_drive_t *drv, uint32_t lba, uint8_t n, void *dest) {
     drv_reg |= (lba >> 24) & 0xf;
 
     ata_pio_wait_status_unset(drv, ATA_PIO_STATUS_BSY);
+    kio_printf("%x, %x\n", drv->io_port_base, drv->io_ctrl_base);
 
     // Tell the bus how many sectors to read
     outb(drv->io_port_base + ATA_PIO_SECT, n);
@@ -186,6 +189,38 @@ void ata_pio_wr(struct ata_drive_t *drv, uint32_t lba, uint8_t n, void *src) {
     }
 }
 
+int ata_pio_identify(struct ata_drive_t *drv) {
+    ata_pio_wait_status_unset(drv, ATA_PIO_STATUS_BSY);
+
+    outb(drv->io_port_base + ATA_PIO_DRV, 
+        drv->drive_n == 0 ?
+            0xa0 : 
+            0xb0);
+
+    outb(drv->io_port_base + ATA_PIO_SECT, 0);
+    outb(drv->io_port_base + ATA_PIO_LBAL, 0);
+    outb(drv->io_port_base + ATA_PIO_LBAM, 0);
+    outb(drv->io_port_base + ATA_PIO_LBAH, 0);
+
+    outb(drv->io_port_base + ATA_PIO_CMND, ATA_CMD_IDENT);
+
+    uint8_t stat = inb(drv->io_port_base + ATA_PIO_STAT);
+
+    if (!stat) return 0;
+
+    ata_pio_wait_status_unset(drv, ATA_PIO_STATUS_BSY);
+    while (!(ata_pio_read_status(drv) & (ATA_PIO_STATUS_DRQ | ATA_PIO_STATUS_ERR)));
+
+    if (ata_pio_read_status(drv) & ATA_PIO_STATUS_ERR) return 0;
+
+    //TODO: Extract the information from the identify command's returned data
+    for (int i = 0; i < 256; i++) {
+        inw(drv->io_port_base + ATA_PIO_DATA);
+    }
+
+    return 1;
+}
+
 void ata_pio_virtfs_rdsect(uint32_t lba, uint8_t count, void *dest, void *param) {
     struct ata_drive_t *drive_info = (struct ata_drive_t *)param;
     ata_pio_rd(drive_info, lba, count, dest);
@@ -194,4 +229,36 @@ void ata_pio_virtfs_rdsect(uint32_t lba, uint8_t count, void *dest, void *param)
 void ata_pio_virtfs_wrsect(uint32_t lba, uint8_t count, void *src, void *param) {
     struct ata_drive_t *drive_info = (struct ata_drive_t *)param;
     ata_pio_wr(drive_info, lba, count, src);
+}
+
+void ata_pio_scandrives() {
+    struct ata_drive_t tmp_drv;
+
+    kio_printf("[ATA] Scanning for drives...\n");
+
+    // Check the primary ATA bus
+    tmp_drv.io_port_base = 0x1f0;
+    tmp_drv.io_ctrl_base = 0x3f6;
+    // Check master and slave on the bus
+    for (int i = 0; i <= 1; i++) {
+        tmp_drv.drive_n = i;
+        if (ata_pio_identify(&tmp_drv)) {
+            kio_printf("[ATA] Found a drive (%d)\n", i);
+            struct ata_drive_t *actual_drive = kmalloc(sizeof(struct ata_drive_t));
+            actual_drive->drive_n = tmp_drv.drive_n;
+            actual_drive->io_port_base = tmp_drv.io_port_base;
+            actual_drive->io_ctrl_base = tmp_drv.io_ctrl_base;
+
+            //TODO: Properly calculate these values
+            actual_drive->bytes_per_sector = 512;
+            actual_drive->first_sector = 0;
+            actual_drive->sector_count = 100;
+
+            int d = register_drive(get_drivetype_index("ATA"), -1, actual_drive);
+            kio_printf("[ATA] New drive registered (%x:%d [%d])\n", 
+                actual_drive->io_port_base, actual_drive->drive_n, d);
+        } else {
+            kio_printf("[ATA] No drive (%x:%d)\n", tmp_drv.io_port_base, i);
+        }
+    }
 }

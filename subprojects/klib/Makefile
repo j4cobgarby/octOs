@@ -3,7 +3,8 @@ CFLAGS = -Wall -Wextra -ffreestanding -I include -I ../kernel/include -O2
 BUILDDIR=../../build/klib
 
 OBJS = kheap.o \
-kmem.o
+kmem.o \
+atox.o
 
 all: $(OBJS)
 

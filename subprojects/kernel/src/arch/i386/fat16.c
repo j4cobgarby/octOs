@@ -39,14 +39,25 @@ drive type is present on that drive.
 */
 int fat16_open(const char *path, int flags) {
     char *path_in_drive = kstrchr(path, ':');
+    int drive_num;
+    int fd;
+
+    if (path_in_drive == NULL) {
+        kio_printf("Path was invalid format.\n");
+        return -1;
+    }
+
     (path_in_drive++)[0] = 0;
-    kio_printf("Opening path %s on drive %s\n", path_in_drive, path);
+    drive_num = katoi(path);
+
+    fd = set_ifd(IFD_ATTR_PRESENT, drive_num, path_in_drive);
+    kio_printf("Opened file (%d): %d : %s\n", fd, drive_num, path_in_drive);
     return 0;
 }
 
 int fat16_close(int fd) {
-    kio_printf("Closing file %d\n", fd);
-    return 0;
+    kio_printf("Closed file %d\n", fd);
+    return del_ifd(fd);
 }
 
 int fat16_read(int fd, void *dest, uint32_t start, uint32_t n) {
