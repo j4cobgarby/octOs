@@ -13,24 +13,21 @@ Devices which can be read/written (like a serial console, for
 instance) will be accessed as a file, similar to UNIX, except that instead of
 the devices being in the /dev directory like it is in UNIX, the path to these
 devices will begin with the special character `%`, for example a serial console
-might be referenced with a path like this: `%console`. There can also be
-devices inside subdirectories, so something like this is allowed: `%vterms/0`,
+might be referenced with a path like this: `%:/console`. There can also be
+devices inside subdirectories, so something like this is allowed: `%:/vterms/0`,
 which will refer to the 1st virtual terminal (similar to Linux's `/dev/tty0`).
 
 Since a "drive" can be various different mediums, like an ATA hard disk, an
 ATAPI drive, a floppy disk, etc., a drive is represented by a generic drive
 struct. A drive has the following properties (`drive_t`):
 
- - Physical sector size
- - Logical sector size
+ - Generic attributes
  - Type of drive
  - Filesystem ID (More about this later)
- - Any attributes
  - A pointer to a structure used for parameters for the specific drive, for 
        example for an ATA drive the parameters would specify the bus IO address
        and the drive number on the bus.
        
-
 An array of open drives is maintained in an array (`drivetable`), indexed on
 the drive number.
 
@@ -39,11 +36,10 @@ written. The type number will refer to an entry in a table of drive types, and
 each drive type will contain various functions for operating on that type of
 drive (`drivetype_t`)
 
- - The name of the drive type (e.g. ATA PIO-mode)
+ - The name of the drive type (e.g. "ATA-PIO")
+ - The amount of bytes per sector
  - A pointer to a function to read a sector 
  - A pointer to a function to write to a sector
-
-The filesystem ID is described more below.
 
 Attributes are described as bit flags in `attr`. All attributes are defined as
 C #defines, beginning with `DRIVE_ATTR_`, in virtfs.h.
@@ -67,9 +63,13 @@ drive table. Each entry in the fs table has the following properties:
  - `int (*close)(int fd)`: Closes a file referred to by the file descriptor.
         Should return 1 on success, otherwise an error code.
  - `int (*read)(int fd, void *dest, uint32_t start, uint32_t n)`: Reads `n`
-        blocks from the file at `fd`, and stores them at the memory starting at
+        bytes from the file at `fd`, and stores them at the memory starting at
         `dest`. The bytes from the file are read starting at position `start`.
         Should return 1 on success, otherwise an error code.
+ - `int (*write)(int fd, void *src, uint32_t start, uint32_t n);`: Writes `n`
+        bytes to the file at `fd` from memory starting at `src`. The bytes in 
+        the file are written starting at position `start`. Returns 1 on success
+        otherwise an error code.
  - `int (*mkdir)(const char *dname, int flags)`: Creates a new directory in the
         filesystem at a given path. `flags` is used to modify the properties of
         the new directory. Should return 1 on success, otherwise an error code.
@@ -87,16 +87,13 @@ oct will first look at the drive number of "2", and get the drive entry in the
 drive table at index 2. From this drive entry, it will look at the `fs` field,
 to find out which filesystem type that drive is using. 
 
-The filesystem's `open`
-function will create a new file descriptor in the dile descriptor table, which
-contains the drive number the file is on. That file descriptor can then be used
-later by, for example, the `read` system call, which will call the filesystem's
-`read` function with that file descriptor as a parameter. At that point, the
-filesystem's `read` function knows the drive to read from, as well as the path
-of the file.
+The filesystem's `open` function will create a new entry in the intern_fd_t table,
+with the path set to "/user/test.txt", and the drive number set to 2.
 
-Once a user program is done with a file, it can call the `close` system call,
-to remove the file descriptor and the information associated with it.
+If the user program then calls `read(fd, dest, 0, 12)`, then oct will look up fd
+in the program's own file descriptor array, and then look at the internal file
+descriptor which that refers to, and from that use the filesystem descriptor and
+the drive type together to read the relevant data from the file.
 
-open:
-new fd
+A similar procedure happens for the `write` system call.
+
