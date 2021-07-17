@@ -14,6 +14,7 @@ exception_handlers.o \
 idt.o \
 ata_pio.o \
 fat16.o \
+memfs.o \
 drives.o \
 virtfs.o \
 main.o

@@ -44,18 +44,37 @@ int set_ifd(uint8_t attr, int drive, char *path) {
     if (drive < 0) return -1;
 
     // Find a suitable fd
-    for (id = 0; (id < IFDTABLE_SIZE) && (ifdtable[id].attr & IFD_ATTR_PRESENT); id++);
-
-    struct intern_fd_t *ifd = &(ifdtable[id]);
-    ifd->attr = attr;
-    ifd->drive = drive;
-    kmemcpy(ifd->path, path, kstrlen(path) + 1); // Copy string and null term.
+    id = get_free_ifd();
+    if (id >= 0) {
+        struct intern_fd_t *ifd = &(ifdtable[id]);
+        ifd->attr = attr;
+        ifd->drive = drive;
+        kmemcpy(ifd->path, path, kstrlen(path) + 1); // Copy string and null term.
+    }
 
     return id;
 }
 
 int del_ifd(int ifd) {
     if (ifd < 0 || ifd >= IFDTABLE_SIZE) return -1;
-    ifdtable[ifd].attr = 0;
+    ifdtable[ifd].pres = 0;
     return ifd;
+}
+
+int get_free_ifd() {
+    for (int i = 0; i < IFDTABLE_SIZE; i++) {
+        if (!ifdtable[i].pres) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+char *vfs_parse_path(int *drivenum, const char *path) {
+    char *colon = kstrchr(path, ':');
+    if (!colon) return NULL;
+    *colon = '\0';
+    *drivenum = katoi(path);
+    *colon = ';';
+    return colon + 1;
 }

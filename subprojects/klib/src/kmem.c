@@ -42,3 +42,12 @@ int kstrcmp(const char *s1, const char *s2) {
     }
     return 0;
 }
+
+int kstrncmp(const char *s1, const char *s2, int n) {
+    for (int i = 0; i < n; i++) {
+        if (s1[i] != s2[i]) {
+            return s1[i] - s2[i];
+        }
+    }
+    return 0;
+}

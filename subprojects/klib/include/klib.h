@@ -37,6 +37,7 @@ Returns
  - a positive value, if s1 > s2
 */
 int kstrcmp(const char *s1, const char *s2);
+int kstrncmp(const char *s1, const char *s2, int n);
 
 double katof(const char *);
 int katoi(const char *);

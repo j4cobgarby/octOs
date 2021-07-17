@@ -6,5 +6,5 @@ boot: disk
 display_library: x, options="gui_debug"
 magic_break: enabled=1
 megs: 128
-debug_symbols: file=octos.sym.bochs
+#debug_symbols: file=octos.sym.bochs
 #log: bochs.log

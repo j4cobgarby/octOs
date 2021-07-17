@@ -15,4 +15,4 @@ octos.sym.bochs: build/octos.bin
 	awk '!($$2="")' octos.sym > octos.sym.bochs
 
 qemurun:
-	qemu-system-i386 build/disk.img
+	qemu-system-i386 build/disk.img -display gtk

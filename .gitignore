@@ -7,3 +7,5 @@ bx_*.ini
 .cache
 compile_commands.json
 *.log
+*.sym*
+

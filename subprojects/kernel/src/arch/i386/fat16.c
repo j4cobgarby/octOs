@@ -50,7 +50,7 @@ int fat16_open(const char *path, int flags) {
     (path_in_drive++)[0] = 0;
     drive_num = katoi(path);
 
-    fd = set_ifd(IFD_ATTR_PRESENT, drive_num, path_in_drive);
+    fd = set_ifd(0, drive_num, path_in_drive);
     kio_printf("Opened file (%d): %d : %s\n", fd, drive_num, path_in_drive);
     return 0;
 }

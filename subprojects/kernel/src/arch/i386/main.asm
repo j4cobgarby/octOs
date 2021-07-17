@@ -49,6 +49,7 @@ extern kmain
 
 _start: ; kernel entry point
     ;warning: don't touch ebx until after pmm_init
+
     mov esp, stack_top
     cli
 

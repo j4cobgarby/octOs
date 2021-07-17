@@ -13,6 +13,10 @@
 #define FSD_NAME_LEN            10
 #define IFDTABLE_SIZE           128
 
+#define FILE_DIRECTORY  0x01
+#define FILE_WRITABLE   0x02
+#define FILE_READABLE   0x04
+
 // dn refers to the drive number (0 is invalid)
 struct filesystemdescriptor_t {
     // `name` must be a C-string (null-terminated)
@@ -46,19 +50,19 @@ struct drive_t {
 // This is the sort of file descriptor that a process would know about, so that
 // each process's file descriptors can start at 0. Each process has its own
 // fd table, maintained by the kernel, which contains lots of this struct.
-#define FD_ATTR_PRESENT     0x01
 
 struct fd_t {
+    short int pres;
     uint8_t attr;
     int intern_fd;
 };
 
-#define IFD_ATTR_PRESENT    0x01
-
 struct intern_fd_t {
+    short int pres;
     uint8_t attr;
     int drive;
     char path[PATH_MAX_LEN]; // The path to the file within the drive
+    void *fsdat; // Data which makes sense to the filesystem
 };
 
 struct drivetype_t {
@@ -91,6 +95,12 @@ int set_ifd(uint8_t attr, int drive, char path[PATH_MAX_LEN]);
 int del_ifd(int ifd);
 
 void vfs_init();
+
+// Extracts the drive number from a path, and returns the pointer to the path after the drive number specifier
+char *vfs_parse_path(int *drivenum, const char *path);
+
 void drivetypes_init();
+
+int get_free_ifd();
 
 #endif
