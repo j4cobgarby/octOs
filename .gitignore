@@ -8,4 +8,4 @@ bx_*.ini
 compile_commands.json
 *.log
 *.sym*
-
+*.img.lock
