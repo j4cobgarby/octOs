@@ -93,14 +93,23 @@ int get_drivetype_index(const char *name);
 
 int set_ifd(uint8_t attr, int drive, char path[PATH_MAX_LEN]);
 int del_ifd(int ifd);
-
 void vfs_init();
 
 // Extracts the drive number from a path, and returns the pointer to the path after the drive number specifier
 char *vfs_parse_path(int *drivenum, const char *path);
-
 void drivetypes_init();
-
 int get_free_ifd();
+
+int vfs_open(const char *path, int flags);
+int vfs_close(int fd);
+
+int vfs_read(int fd, void *dest, uint32_t start, uint32_t n);
+int vfs_write(int fd, void *src, uint32_t start, uint32_t n);
+
+int vfs_mkdir(const char *path, int flags);
+int vfs_getpath(int fd, char *path);
+
+int vfs_rmdir(const char *path);
+int vfs_rmfile(const char *path);
 
 #endif

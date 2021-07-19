@@ -7,43 +7,33 @@
 #include "fs/memfs.h"
 
 void kmain() {
+    vfs_init();
     fat16_init();
     memfs_init();
     drivetypes_init();
 
-    struct memfs_node_t *rootnode = memfs_getnode("/");
-    kio_printf("%s\n", rootnode->name);
+    struct memfs_node_t *n1 = kmalloc(sizeof(struct memfs_node_t));
 
-    int ata_id = get_drivetype_index("ATA");
-    // kio_printf("ATA type id = %d\n", ata_id);
+    n1->node_type = MEMFS_NODETYPE_FILE;
+    kmemcpy(n1->name, "myfile.txt", 11);
+    n1->u.file.length = 512;
+    n1->u.file.data = kmalloc(512);
+    kmemcpy(n1->u.file.data, "Hello, world!", 14);
 
-    struct ata_drive_t *drv0 = drivetable[0].drive_param;
-    // kio_printf("io: 0x%x, ctrl: 0x%x\n", drv0->io_port_base, drv0->io_ctrl_base);
+    memfs_append_node_to_dir(memfs_root_node, n1);
 
-    // uint16_t dest[512];
-    // //ata_pio_virtfs_rdsect(1, 1, dest, &drivetable[0]);
-    // ata_pio_rd(drv0, 0, 1, &dest[0]);
-    // kio_printf("Sect 0: \n");
-    // for (int i = 0; i < 128; i++) {
-    //     uint32_t word = ((uint32_t*)dest)[i];
-    //     kio_puthex(word);
-    //     kio_putc(' ');
-    //     if ((i+1) % 8 == 0) {
-    //         kio_putc('\n');
-    //     }
-    // }
-    // kio_putc('\n');
-    
-/*
-    struct ata_drive_t drv;
-    drv.drive_n = 0;
-    drv.io_port_base = 0x1f0;
-    drv.io_ctrl_base = 0x3f6;
-    drv.bytes_per_sector = 512;
-    drv.first_sector = 0;
-    drv.sector_count = 100;
-    
-    int drvnum = register_drive(0, 0, &drv, "ATA0:0/0"); // ATA bus 0, drive 0, partition 0 (whole disk)
-    fat16_open("0:/user/jacob/myfile.txt", 0);
-*/
+    int drv = register_drive(-1, get_filesystem_index("MEMFS"), NULL);
+    int myfile = vfs_open("1:/myfile.txt", FILE_WRITABLE | FILE_READABLE);
+    char *buffer = kmalloc(20);
+    vfs_read(myfile, buffer, 0, 5);
+    buffer[5] = '\0';
+    kio_printf("Data: %s\n", buffer);
+
+    // int myfile = memfs_open("0:/myfile.txt", FILE_READABLE);
+    // char *buffer = kmalloc(20);
+    // kio_printf("Read: %d\n", memfs_read(myfile, buffer, 1, 4));
+    // buffer[4] = '\0';
+    // kio_printf("Data: %s\n", buffer);
+
+    // int ata_id = get_drivetype_index("ATA");
 }

@@ -32,11 +32,12 @@ int memfs_open(const char *path, int flags) {
 
     if (new_ifd >= 0) {
         path = vfs_parse_path(&drivenum, path);
+        if (!path) return -3;
 
         // Trying to open a file which doesn't exist
         struct memfs_node_t *node = memfs_getnode(path);
         if (!node) return -1;
-        if (node->node_type != MEMFS_NODETYPE_FILE) return -1;
+        if (node->node_type != MEMFS_NODETYPE_FILE) return -2;
 
         ifdtable[new_ifd].fsdat = node;
         ifdtable[new_ifd].pres = 1;
@@ -58,7 +59,7 @@ int memfs_close(int fd) {
 
 int memfs_read(int fd, void *dest, uint32_t start, uint32_t n) {
     if (!ifdtable[fd].pres) return -1;
-    if (!(ifdtable[fd].attr & FILE_READABLE)) return -1;
+    if (!(ifdtable[fd].attr & FILE_READABLE)) return -2;
 
     struct intern_fd_t ifd = ifdtable[fd];
     struct memfs_node_t *fnode = ifd.fsdat;
@@ -69,7 +70,7 @@ int memfs_read(int fd, void *dest, uint32_t start, uint32_t n) {
         return n;
     }
 
-    return -1;
+    return -3;
 }
 
 int memfs_write(int fd, void *src, uint32_t start, uint32_t n) {
