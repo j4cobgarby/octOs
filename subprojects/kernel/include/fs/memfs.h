@@ -40,7 +40,9 @@ int memfs_getpath(int fd, char *path);
 int memfs_rmdir(const char *path);
 int memfs_rmfile(const char *path);
 
+
 void memfs_init();
+struct memfs_node_t *memfs_get_parentnode(const char *path);
 struct memfs_node_t *memfs_getnode(const char *path);
 void memfs_append_node_to_dir(struct memfs_node_t *dir, struct memfs_node_t *node);
 void memfs_remove_node(struct memfs_node_t *node);

@@ -112,4 +112,6 @@ int vfs_getpath(int fd, char *path);
 int vfs_rmdir(const char *path);
 int vfs_rmfile(const char *path);
 
+const char *vfs_get_nodename(const char *path); // /dir/dir2/file.txt >> file.txt
+
 #endif

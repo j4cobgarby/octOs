@@ -137,3 +137,10 @@ int vfs_rmfile(const char *path) {
     struct filesystemdescriptor_t fs = fsdtable[drv.fs];
     return fs.rmfile(path);
 }
+
+const char *vfs_get_nodename(const char *path) {
+    while ((path = kstrchr(path, '/'))) {
+        path++; // Skip over the '/'
+    }
+    return path;
+}

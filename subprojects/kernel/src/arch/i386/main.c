@@ -23,10 +23,13 @@ void kmain() {
     memfs_append_node_to_dir(memfs_root_node, n1);
 
     int drv = register_drive(-1, get_filesystem_index("MEMFS"), NULL);
+    kio_printf("Drive ind: %d\n", drv);
     int myfile = vfs_open("1:/myfile.txt", FILE_WRITABLE | FILE_READABLE);
+    kio_printf("File d: %d\n", myfile);
     char *buffer = kmalloc(20);
-    vfs_read(myfile, buffer, 0, 5);
-    buffer[5] = '\0';
+    vfs_write(myfile, "Written", 0, 7);
+    vfs_read(myfile, buffer, 0, 13);
+    buffer[13] = '\0';
     kio_printf("Data: %s\n", buffer);
 
     // int myfile = memfs_open("0:/myfile.txt", FILE_READABLE);

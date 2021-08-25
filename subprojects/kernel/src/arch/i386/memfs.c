@@ -79,16 +79,35 @@ int memfs_write(int fd, void *src, uint32_t start, uint32_t n) {
 
     struct intern_fd_t ifd = ifdtable[fd];
     struct memfs_node_t *fnode = ifd.fsdat;
+    kio_printf("Fnode: %x\n", fnode);
     char *data = fnode->u.file.data;
+    kio_printf("File data: %x\n", data);
 
     if (start+n < (uint32_t)fnode->u.file.length) {
         kmemcpy(data+start, src, n);
         return n;
     }
+    //kio_printf("Writing MEMFS\n");
 }
 
 int memfs_mkdir(const char *path, int flags) {
+    struct memfs_node_t *dir_in = memfs_get_parentnode(path);
+    struct memfs_node_t *new_node = kmalloc(sizeof(struct memfs_node_t));
 
+    if (!dir_in) {
+        return -1;
+    }
+
+    if (!kstrchr(path, '/')) {
+        return -1;
+    }
+
+    new_node->parent = dir_in;
+    new_node->node_type = MEMFS_NODETYPE_DIR;
+    const char *dirname = vfs_get_nodename(path);
+    kmemcpy(new_node->name, (char*)dirname, kstrlen(dirname) + 1); // Copy dirname + null terminator
+
+    memfs_append_node_to_dir(dir_in, new_node);
 }
 
 int memfs_getpath(int fd, char *path) {
@@ -96,13 +115,73 @@ int memfs_getpath(int fd, char *path) {
 }
 
 int memfs_rmdir(const char *path) {
+    struct memfs_node_t *n = memfs_getnode(path);
 
+    if (!n) return -1;
+
+    memfs_remove_node(n);
 }
 
 int memfs_rmfile(const char *path) {
+    struct memfs_node_t *n = memfs_getnode(path);
 
+    if (!n) return -1;
+
+    memfs_remove_node(n);
 }
 
+struct memfs_node_t *memfs_get_parentnode(const char *path) {
+    // path "/dir1/dir2/file.txt", would return "/dir1/dir2"'s node
+
+    // path "/dir1/dir2/" would return "/dir2"'s node, because it ends in a slash
+    // TODO: Maybe this shouldn't be the case, though, but the problem is:
+    // should it return dir1 instead? in that case, should it remove _all_ trailing slashes?
+    // decide on this.
+
+    struct memfs_node_t *current_node = memfs_root_node;
+
+    // skip slashes before path names
+    //while (path[0] == '/') path++;
+
+    const char *next_slash;
+    // While there is another slash in the string...
+    while ((next_slash = kstrchr(path, '/'))) {
+        // If trying to get files inside another file (e.g. /myfile.txt/otherthing), that's not allowed
+        if (current_node->node_type == MEMFS_NODETYPE_FILE) return NULL;
+
+        size_t sect_len = next_slash - path;
+
+        if (sect_len > 0) { // a//b/c == a/b/c
+            struct memfs_node_t *node_in_dir = current_node->u.dir.first_in_dir;
+            int found = 0;
+
+            // Find the node in the current directory of the target name
+            while (node_in_dir) {
+                if (kstrlen(node_in_dir->name) == sect_len && kstrncmp(path, node_in_dir->name, sect_len) == 0) {
+                    current_node = node_in_dir;
+                    found = 1;
+                    break;
+                }
+                node_in_dir = node_in_dir->next_node;
+            }
+
+            if (!found) return NULL;
+        }
+
+        path = next_slash + 1;
+    }
+
+    if  (current_node->node_type == MEMFS_NODETYPE_FILE) {
+        return NULL; // Cannot be that a parent node is a file.
+        // The possibilities are that the path parameter was something like
+        // /dir1/file.txt/
+        // or,
+        // /dir1/file.txt/dir2
+        // Both of which are bad
+    }
+
+    return current_node;
+}
 
 struct memfs_node_t *memfs_getnode(const char *path) {
     // path is like "/dir1/dir2/dir3/file.txt"

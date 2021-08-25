@@ -1,6 +1,6 @@
 ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 #ata0-master: type=disk, path="build/octos.img", cylinders=1024, heads=15, spt=63, mode=flat
-ata0-slave: type=disk, path="test2.img", mode=flat
+#ata0-slave: type=disk, path="test2.img", mode=flat
 ata0-master: type=disk, path="build/disk.img", mode=flat
 boot: disk
 display_library: x, options="gui_debug"
