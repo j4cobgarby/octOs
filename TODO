@@ -3,8 +3,10 @@ DONE:
  Keyboard input stub
  Implement basic physical mem manager
  Implement memory management (paging)
+ Implement a "memory file system" to A: test the filesystem functions, and B: organise kernel data better
 
 TO DO:
+ Implement FAT16 and perhaps FAT32
  Implement processes (scheduling, creation, deletion, etc.)
  Exception handlers to kill process if they do bad
  Write a 'process 0', to initialise everything
