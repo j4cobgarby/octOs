@@ -32,6 +32,8 @@ void kmain() {
     buffer[13] = '\0';
     kio_printf("Data: %s\n", buffer);
 
+    
+
     // int myfile = memfs_open("0:/myfile.txt", FILE_READABLE);
     // char *buffer = kmalloc(20);
     // kio_printf("Read: %d\n", memfs_read(myfile, buffer, 1, 4));
