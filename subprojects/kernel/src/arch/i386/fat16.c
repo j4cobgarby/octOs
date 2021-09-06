@@ -22,6 +22,7 @@ struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
     struct fat16_bpb_t *bpb = tmp + 0x0b;
 
     drivetypetable[the_drive.type].rdsect(0, 1, tmp, the_drive.drive_param);
+    
 }
 
 void fat16_init() {
