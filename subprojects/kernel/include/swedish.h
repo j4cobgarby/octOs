@@ -1,0 +1,1 @@
+#define MSG_WELCOME "Välkommen till Oct OperativSystem"

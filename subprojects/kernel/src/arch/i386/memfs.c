@@ -16,14 +16,14 @@ void memfs_init() {
     fsd.rmfile = &memfs_rmfile;
     kmemcpy(fsd.name, "MEMFS", 6);
 
-    register_filesystem(fsd);
+    int n = register_filesystem(fsd);
 
     memfs_root_node = kmalloc(sizeof(struct memfs_node_t));
     memfs_root_node->node_type = MEMFS_NODETYPE_DIR;
     kmemcpy(memfs_root_node->name, "ROOTDIR", 8);
     memfs_root_node->u.dir.first_in_dir = NULL;
 
-    kio_printf("[MEMFS] Initialised.\n");
+    kio_printf("[MEMFS] Initialised: %d\n", n);
 }
 
 int memfs_open(const char *path, int flags) {
