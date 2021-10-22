@@ -1,3 +1,5 @@
+![Oct Os Logo](https://github.com/j4cobgarby/octOs/blob/master/Logo%20OctOs%20Sketch.png)
+
 # oct kernel and related software
 
     - booted with the GRUB2 bootloader.
