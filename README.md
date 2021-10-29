@@ -1,4 +1,4 @@
-![Oct Os Logo](https://github.com/j4cobgarby/octOs/blob/master/Logo%20OctOs%20Sketch.png)
+![Oct Os Logo](Images/Ink%20Logo%20Watercolour.png)
 
 # oct kernel and related software
 
