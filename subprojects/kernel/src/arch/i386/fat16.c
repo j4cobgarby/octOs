@@ -22,8 +22,9 @@ struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
     struct fat16_bpb_t *bpb = tmp + 0x0b;
 
     kio_printf("Reading dir entry\n");
-    //drivetypetable[the_drive.type].rdsect(0, 1, tmp, the_drive.drive_param);
-    
+    drivetypetable[the_drive.type].rdsect(0, 1, tmp, the_drive.drive_param);
+    kio_printf("Sig %x %x\n", tmp[0x01fe], tmp[0x1ff]);
+    kio_printf("Bytes per sect: %x %x\n", tmp[0x000b], tmp[0x000c]);
 }
 
 void fat16_init() {
@@ -76,6 +77,7 @@ int fat16_close(int fd) {
 
 int fat16_read(int fd, void *dest, uint32_t start, uint32_t n) {
     kio_printf("[FAT16] Reading file %d\n", fd);
+    fat16_find_dir_entry(fd);
 
     // 1) Determine which physical drive type this file is on
     // 2) Starting at the root directory, 

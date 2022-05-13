@@ -128,7 +128,7 @@ void ata_pio_rd(struct ata_drive_t *drv, uint32_t lba, uint8_t n, void *dest) {
     drv_reg |= (lba >> 24) & 0xf;
 
     ata_pio_wait_status_unset(drv, ATA_PIO_STATUS_BSY);
-    kio_printf("%x, %x\n", drv->io_port_base, drv->io_ctrl_base);
+    kio_printf("[ATA] %x, %x\n", drv->io_port_base, drv->io_ctrl_base);
 
     // Tell the bus how many sectors to read
     outb(drv->io_port_base + ATA_PIO_SECT, n);
