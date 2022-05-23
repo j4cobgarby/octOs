@@ -7,7 +7,7 @@ sfdisk disk.img < ../disklayout
 LOOP0=`sudo losetup -f`
 sudo losetup $LOOP0 disk.img
 LOOP1=`sudo losetup -f`
-sudo losetup $LOOP1 -o 1048576 disk.img
+sudo losetup $LOOP1 -o 524288 disk.img
 sudo mkfs.fat -F16 -f2 $LOOP1
 sudo mount $LOOP1 /mnt
 sudo grub-install --target=i386-pc --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 fat multiboot" $LOOP0
