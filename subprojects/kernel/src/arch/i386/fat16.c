@@ -16,6 +16,17 @@ uint16_t fat16_read_fat_entry(uint8_t *fattable, uint32_t i) {
     return entry;
 }
 
+struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
+    struct drive_t the_drive = drivetable[ifdtable[fd].drive];
+    char tmp[512];
+    struct fat16_bpb_t *bpb = tmp + 0x0b;
+
+    kio_printf("Reading dir entry\n");
+    drivetypetable[the_drive.type].rdsect(0, 1, tmp, the_drive.drive_param);
+    kio_printf("Sig %x %x\n", tmp[0x01fe], tmp[0x1ff]);
+    kio_printf("Bytes per sect: %x %x\n", tmp[0x000b], tmp[0x000c]);
+}
+
 void fat16_init() {
     struct filesystemdescriptor_t fsd;
     fsd.open = &fat16_open;
@@ -27,9 +38,9 @@ void fat16_init() {
     fsd.rmdir = &fat16_rmdir;
     fsd.rmfile = &fat16_rmfile;
     kmemcpy(fsd.name, "FAT16", 6); // Copy the name (and null terminator)
-    register_filesystem(fsd);
+    int n = register_filesystem(fsd);
 
-    kio_printf("[FAT16] Initialised.\n");
+    kio_printf("[FAT16] Initialised: %d\n", n);
 }
 
 /*
@@ -51,7 +62,11 @@ int fat16_open(const char *path, int flags) {
     drive_num = katoi(path);
 
     fd = set_ifd(0, drive_num, path_in_drive);
-    kio_printf("Opened file (%d): %d : %s\n", fd, drive_num, path_in_drive);
+
+    ifdtable[fd].fsdat = kmalloc(sizeof(struct fat16_dir_entry_t));
+    //((struct fat16_dir_entry_t*)ifdtable[fd].fsdat)->
+
+    kio_printf("[FAT16] Opened file (%d): %d : %s\n", fd, drive_num, path_in_drive);
     return 0;
 }
 
@@ -61,7 +76,12 @@ int fat16_close(int fd) {
 }
 
 int fat16_read(int fd, void *dest, uint32_t start, uint32_t n) {
-    kio_printf("Reading file %d\n", fd);
+    kio_printf("[FAT16] Reading file %d\n", fd);
+    fat16_find_dir_entry(fd);
+
+    // 1) Determine which physical drive type this file is on
+    // 2) Starting at the root directory, 
+
     return 0;
 }
 

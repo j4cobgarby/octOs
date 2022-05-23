@@ -4,4 +4,4 @@ device: disk.img
 unit: sectors
 sector-size: 512
 
-disk.img1 : start=        2048, size=      129024, type=06, bootable
+disk.img1 : start=        1024, size=      129024, type=06, bootable

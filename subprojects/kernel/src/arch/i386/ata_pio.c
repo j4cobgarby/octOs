@@ -128,7 +128,7 @@ void ata_pio_rd(struct ata_drive_t *drv, uint32_t lba, uint8_t n, void *dest) {
     drv_reg |= (lba >> 24) & 0xf;
 
     ata_pio_wait_status_unset(drv, ATA_PIO_STATUS_BSY);
-    kio_printf("%x, %x\n", drv->io_port_base, drv->io_ctrl_base);
+    kio_printf("[ATA] %x, %x\n", drv->io_port_base, drv->io_ctrl_base);
 
     // Tell the bus how many sectors to read
     outb(drv->io_port_base + ATA_PIO_SECT, n);
@@ -243,7 +243,7 @@ void ata_pio_scandrives() {
     for (int i = 0; i <= 1; i++) {
         tmp_drv.drive_n = i;
         if (ata_pio_identify(&tmp_drv)) {
-            kio_printf("[ATA] Found a drive (%d)\n", i);
+            kio_printf("[ATA] *Finds a drive (%d)*\n", i);
             struct ata_drive_t *actual_drive = kmalloc(sizeof(struct ata_drive_t));
             actual_drive->drive_n = tmp_drv.drive_n;
             actual_drive->io_port_base = tmp_drv.io_port_base;
@@ -254,7 +254,7 @@ void ata_pio_scandrives() {
             actual_drive->first_sector = 0;
             actual_drive->sector_count = 100;
 
-            int d = register_drive(get_drivetype_index("ATA"), -1, actual_drive);
+            int d = register_drive(get_drivetype_index("ATA"), get_filesystem_index("FAT16"), actual_drive);
             kio_printf("[ATA] New drive registered (%x:%d [%d])\n", 
                 actual_drive->io_port_base, actual_drive->drive_n, d);
         } else {
