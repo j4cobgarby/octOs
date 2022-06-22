@@ -20,11 +20,26 @@ struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
     struct drive_t the_drive = drivetable[ifdtable[fd].drive];
     char tmp[512];
     struct fat16_bpb_t *bpb = tmp + 0x0b;
+    struct fat16_ebr_t *ebr = tmp + 0x0b + sizeof(struct fat16_bpb_t);
 
     kio_printf("Reading dir entry\n");
-    drivetypetable[the_drive.type].rdsect(0, 1, tmp, the_drive.drive_param);
+    drivetypetable[the_drive.type].rdsect(1024, 1, tmp, the_drive.drive_param);
     kio_printf("Sig %x %x\n", tmp[0x01fe], tmp[0x1ff]);
-    kio_printf("Bytes per sect: %x %x\n", tmp[0x000b], tmp[0x000c]);
+    kio_printf("\
+    Bytes per sect: %d\n\
+    #FATS: %d\n\
+    #Sects: %d\n\
+    #Large sects: %d\n", 
+    bpb->bytes_per_sect, bpb->number_of_fats, 
+    bpb->total_sects, bpb->largesect_count);
+
+    kio_printf("\
+    Drive #: %d\n\
+    Sig: %d\n",
+    ebr->drive_number,
+    ebr->sig);
+
+    kio_puts_n(ebr->label, 11);
 }
 
 void fat16_init() {
