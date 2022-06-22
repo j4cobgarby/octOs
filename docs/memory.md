@@ -30,7 +30,7 @@ since if you want an amount of memory that is less than the size of a page,
 a lot of memory will be wasted. Therefore, functions like malloc are required
 to allocate just a little bit of memory.
 
-### In the kernel
+### In the kernel (old version)
 
 The kernel can use the functions `kmalloc` and `kfree` to allocate and free a
 specific amount of memory. The heap is a linked list of 4KB blocks of memory.
@@ -47,6 +47,24 @@ in. In the subblock array, a value of 0 represents a free subblock, and every
 other value represents an allocated subblock. Neighbouring allocations of
 subblocks must be different values, so that `kfree` can differentiate between
 them.
+
+### In the kernel (new version)
+
+The kernel can use the functions `kmalloc` and `kfree` to allocate and free a
+specific amount of memory. In previous versions, this amount of memory had to
+be less than 4KB of memory (the size of a block on the heap), but now allocat-
+ed memory can span multiple blocks, and so can be any size up the total amount
+of memory.
+
+The heap is implemented as a linked list of blocks. Each block is up of cont-
+iguous chunks of 4KB. A block can be as small as 4KB, but can have any number
+of these chunks. At the beginning of a block is some metadata, which contains
+the following properties: (`block_meta_t`)
+
+ - The amount of 4KB chunks in this block.
+ - A pointer to the next block
+ - The amount of free subblocks in the block
+ - An array of bytes representing the subblocks.
 
 ### In user processes
 
