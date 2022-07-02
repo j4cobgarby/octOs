@@ -22,7 +22,7 @@ The kernel is always at virtual address 0x100000. Userspace memory will begin
 at 2GB virtual (0x80000000). Virtual memory management is done mostly in
 `paging.c` (and `paging.h`).
 
-## Dynamic Memory Allocation
+## Heap Memory Allocation
 
 When memory is needed dynamically (e.g. the amount is not known at boot),
 it's not convenient to have to use the pmm_alloc function to get this memory,
@@ -30,7 +30,7 @@ since if you want an amount of memory that is less than the size of a page,
 a lot of memory will be wasted. Therefore, functions like malloc are required
 to allocate just a little bit of memory.
 
-### In the kernel (old version)
+### In the kernel
 
 The kernel can use the functions `kmalloc` and `kfree` to allocate and free a
 specific amount of memory. The heap is a linked list of 4KB blocks of memory.
@@ -40,24 +40,16 @@ following properties: (`block_meta_t`)
 
  - A pointer to the next block
  - The amount of free subblocks in the block
- - An array of bytes representing each subblock
+ - The amount of 4KB memory blocks in the block
+
+In the subblock directly following the metadata, an array of bytes begins,
+which acts as a bitmap determining which subblocks are free and taken.
 
 And then, the rest of the block is available for `kmalloc` to allocate memory
 in. In the subblock array, a value of 0 represents a free subblock, and every
 other value represents an allocated subblock. Neighbouring allocations of
 subblocks must be different values, so that `kfree` can differentiate between
 them.
-
-### In the kernel (new version)
-
-The kernel's heap is made up of 4KB blocks of memory, which are contiguous when
-viewed from virtual memory. The addresses they reside at in physical memory may
-vary. A pointer to the start of the heap, as well as its size, is declared in 
-`klib.h`. The kernel can call the VMM to increase or decrease the size of the 
-heap, with a granularity of 1 block (4KB).
-
-The kernel can use kmalloc, kfree, and krealloc, to allocate and free memory on
-the heap.
 
 ### In user processes
 
