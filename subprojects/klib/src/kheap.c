@@ -4,9 +4,13 @@
 
 struct block_meta_t *_kheap_first = NULL;
 
-void _kheap_add_block(void *addr) {
+void _kheap_add_block(void *addr, uint32_t blocks) {
     // Create block metadata at beginning of the block
     struct block_meta_t *meta = (struct block_meta_t *)addr;
+    meta->blocks = blocks;
+
+    uint8_t *bitmap = addr + HEAP_SUBBLOCKSIZE;
+    unsigned int subblocks_count = HEAP_SBLK_PER_BLOCK*blocks;
 
     if (_kheap_first == NULL) {
         // Set beginning of the heap linked list
@@ -17,16 +21,19 @@ void _kheap_add_block(void *addr) {
         _kheap_first = meta;
     }
 
-    // Free all blocks
-    meta->free = PMM_BLOCKSIZE / HEAP_SUBBLOCKSIZE;
-    for (unsigned int i = 0; i < PMM_BLOCKSIZE / HEAP_SUBBLOCKSIZE; i++) {
-        meta->subblocks[i] = 0; // Set all blocks to free
+    meta->free = subblocks_count;
+
+    kio_printf("[HEAP] Adding new block to heap.\n%d blocks long.\nAddress: %x\n\
+%d subblocks long.\n", blocks, (uint32_t)addr, subblocks_count);
+
+    for (unsigned int i = 0; i < subblocks_count; i++) {
+        bitmap[i] = 0; // Set all subblocks to free
     }
 
-    // Allocate subblocks for the metadata
-    for (unsigned int i = 0; 
-            i < N_SUBBLOCKS_CONTAINING(sizeof(struct block_meta_t)); i++) {
-        meta->subblocks[i] = 1;
+    kio_printf("[HEAP] Reserving %d subblocks for metadata.\n", 
+        1+N_SUBBLOCKS_CONTAINING(subblocks_count));
+    for (unsigned int i = 0; i < 1+N_SUBBLOCKS_CONTAINING(subblocks_count); i++) {
+        bitmap[i] = 1; // Reserve subblocks for metadata and the bitmap itself
         meta->free--;
     }
 }
@@ -37,7 +44,11 @@ inline uint8_t _kheap_make_uid(uint8_t left, uint8_t right) {
     return ret;
 }
 
-// TODO: Make malloc be able to allocate more memory than there is in one block
+// Calculate the index of the first subblock (after metadata) in a given block
+int first_user_subblock(struct block_meta_t *meta) {
+    return 1 + N_SUBBLOCKS_CONTAINING(HEAP_SBLK_PER_BLOCK * meta->blocks);
+}
+
 void *kmalloc(size_t size) {
     struct block_meta_t *current_block;
     unsigned int subblocks = N_SUBBLOCKS_CONTAINING(size);
@@ -45,22 +56,20 @@ void *kmalloc(size_t size) {
     unsigned int start;
     int added_new_block = 0;
 
-    if (size > PMM_BLOCKSIZE) {
-        return NULL;
-    }
-
     if (_kheap_first == NULL) {
-        _kheap_add_block(pmm_alloc());
+        _kheap_add_block(pmm_alloc(), 1);
     }
 
     for (current_block = _kheap_first; current_block != NULL; 
             current_block = current_block->next) {
         if (current_block->free < subblocks) continue;
 
+        uint8_t *bitmap = (uint8_t*)((uint32_t)current_block + HEAP_SUBBLOCKSIZE);
+
         // Look for a run of size subblocks
         start = 0;
-        for (unsigned int i = 0; i < PMM_BLOCKSIZE/HEAP_SUBBLOCKSIZE; i++) {
-            if (current_block->subblocks[i] != 0) {
+        for (unsigned int i = 0; i < HEAP_SBLK_PER_BLOCK * current_block -> blocks; i++) {
+            if (bitmap[i] != 0) {
                 // This subblock is taken
                 found = 0;
             } else {
@@ -74,31 +83,51 @@ void *kmalloc(size_t size) {
             // Find an id for the subblock which is different the id of the
             // subblocks either side of it
             uint8_t left_uid = start == 0 ? 0 :
-                current_block->subblocks[start-1];
-            uint8_t right_uid = start == PMM_BLOCKSIZE/HEAP_SUBBLOCKSIZE - 1 ?
-                0 : current_block->subblocks[start]+subblocks;
+                bitmap[start-1];
+            uint8_t right_uid = start == HEAP_SBLK_PER_BLOCK * current_block->blocks - 1 ?
+                0 : bitmap[start]+subblocks;
             uint8_t uid = _kheap_make_uid(left_uid, right_uid);
-
-            
 
             // Return a pointer to the allocated memory
             for (unsigned int i = 0; i < subblocks; i++) {
-                current_block->subblocks[start+i] = uid;
+                uint8_t *bitmap = (uint8_t*)((uint32_t)current_block + HEAP_SUBBLOCKSIZE);
+                bitmap[start+i] = uid;
             }
 
             return ((uint8_t*)current_block) + start * HEAP_SUBBLOCKSIZE;
-        } else {
-            // Not enough free memory in this block
-            if (current_block->next == NULL && !added_new_block) {
-                // Add a new block to the heap, if memory wasn't found in this
-                // block *and* there are no more blocks following it.
-                // Also this makes sure it can only add one new block, so it
-                // can't accidentally go into any infinite loops.
-                _kheap_add_block(pmm_alloc());
-                added_new_block = 1;
+        }
+    }
+
+    // At this point, none of the blocks were suitable, so we must add a new one
+    // The amount of subblocks we need is:
+    // subblocks containing(`size`), for the actual requested data storage
+    // + 1 for the metadata
+    // + a varying amount for the bitmap, which depends on the amount of blocks
+
+    for (unsigned int blocks = 1; ; blocks++) {
+        unsigned int subs = N_SUBBLOCKS_CONTAINING(size) + 1 +
+            N_SUBBLOCKS_CONTAINING(HEAP_SBLK_PER_BLOCK*blocks);
+        if (subs <= HEAP_SBLK_PER_BLOCK*blocks) {
+            // This amount of blocks will suffice
+            kio_printf("[HEAP] Adding new block of size %d blocks\n", blocks);
+            void *addr = pmm_allocs(blocks);
+            if (addr != NULL) {
+                _kheap_add_block(addr, blocks);
+            } else {
+                kio_printf("[HEAP] We appear to have run out of memory :(");
+                return NULL;
             }
 
-            continue;
+            uint8_t *bitmap = (uint8_t*)((uint32_t)addr + HEAP_SUBBLOCKSIZE);
+            unsigned int user_sblk = first_user_subblock((struct block_meta_t*)addr);
+
+            for (unsigned int i = 0; i < subblocks; i++) {
+                // '2' is a bitmap value that won't yet have been used in this block
+                // since it's a new block
+                bitmap[user_sblk + i] = 2;
+            }
+
+            return addr + user_sblk * HEAP_SUBBLOCKSIZE;
         }
     }
 
@@ -111,14 +140,15 @@ void kfree(void *ptr) {
     for (current_block = _kheap_first; current_block != NULL; 
             current_block = current_block->next) {
         if (ptr > (void*)current_block && 
-                ptr < (void*)current_block+PMM_BLOCKSIZE) {
+                ptr < (void*)current_block + PMM_BLOCKSIZE*current_block->blocks) {
             // Found the block that the pointer to free is in.
+            uint8_t *bitmap = (uint8_t*)((uint32_t)current_block + HEAP_SUBBLOCKSIZE);
             unsigned int block_offset = ptr - (void*)current_block;
             unsigned int subblock = block_offset / HEAP_SUBBLOCKSIZE;
-            uint8_t uid = current_block->subblocks[subblock];
+            uint8_t uid = bitmap[subblock];
             for (unsigned int i = subblock; 
-                    current_block->subblocks[i] == uid; i++) {
-                current_block->subblocks[i] = 0;
+                    bitmap[i] == uid; i++) {
+                bitmap[i] = 0;
                 current_block->free++;
             }
         }

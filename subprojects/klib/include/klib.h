@@ -6,6 +6,7 @@
 
 #define NULL 0
 #define HEAP_SUBBLOCKSIZE 32 // Size in bytes of each block in the heap
+#define HEAP_SBLK_PER_BLOCK (PMM_BLOCKSIZE / HEAP_SUBBLOCKSIZE)
 
 // Gets the amount of subblocks needed to contain a certain amount of bytes.
 // Don't worry about the division, as long as HEAP_SUBBLOCKSIZE is a power of 2
@@ -17,7 +18,10 @@ typedef unsigned int size_t;
 struct block_meta_t {
     struct block_meta_t *next; // Next block in the linked list, 0 if none
     uint32_t free; // Amount of free subblocks in this block
-    uint8_t subblocks[PMM_BLOCKSIZE / HEAP_SUBBLOCKSIZE];
+    uint32_t blocks; // Amount of memory blocks that make up this block
+    // The bitmap of subblocks starts at the second subblock of this block.
+    // The metadata is in the first subblock. Therefore, HEAP_SUBBLOCKSIZE
+    // must be >= the size of the metadata.
 };
 
 void *kmalloc(size_t size);
