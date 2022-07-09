@@ -20,10 +20,6 @@ void kmain() {
     char *buf = kmalloc(64);
     vfs_read(f, buf, 0, 64);
 
-    kio_printf("Trying to allocate 8000 bytes.\n");
-    void *big = kmalloc(8000);
-    kio_printf("Got some memory at %x\n", big);
-
     // struct memfs_node_t *n1 = kmalloc(sizeof(struct memfs_node_t));
 
     // n1->node_type = MEMFS_NODETYPE_FILE;
