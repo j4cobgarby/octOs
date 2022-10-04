@@ -5,10 +5,9 @@
 #include "fs/virtfs.h"
 #include "fs/fat16.h"
 #include "fs/memfs.h"
-#include "localisation.h"
 
 void kmain() {
-    kio_printf(MSG_WELCOME);
+    kio_printf("Welcome to OctOS");
 
     vfs_init();
     fat16_init();
