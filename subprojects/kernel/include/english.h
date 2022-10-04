@@ -1,1 +1,0 @@
-#define MSG_WELCOME "Welcome to the Oct Operating System!"
