@@ -7,17 +7,20 @@
 #include "fs/memfs.h"
 
 void kmain() {
-    kio_printf("Welcome to OctOS");
+    kio_printf("Welcome to OctOS!");
 
     vfs_init();
+    drivetypes_init();
     fat16_init();
     memfs_init();
-    drivetypes_init();
-    int drv = register_drive(-1, get_filesystem_index("MEMFS"), NULL);
+    ata_pio_scandrives();
+
+
+    //int drv = register_drive(-1, get_filesystem_index("MEMFS"), NULL);
 
     int f = vfs_open("0:/boot/grub/grub.cfg", FILE_READABLE);
-    char *buf = kmalloc(64);
-    vfs_read(f, buf, 0, 64);
+    //char *buf = kmalloc(64);
+    //vfs_read(f, buf, 0, 64);
 
     // struct memfs_node_t *n1 = kmalloc(sizeof(struct memfs_node_t));
 

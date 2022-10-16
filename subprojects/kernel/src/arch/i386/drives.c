@@ -29,6 +29,7 @@ int register_drive(int drivetype, int fstype, void *param) {
     drivetable[id].drive_param = param;
     drivetable[id].fs = fstype;
     drivetable[id].type = drivetype;
+    fsdtable[fstype].mount(id);
 
     return id++;
 }
