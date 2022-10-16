@@ -34,6 +34,8 @@ struct filesystemdescriptor_t {
 
     int (*rmdir)(const char *path);
     int (*rmfile)(const char *path);
+
+    int (*mount)(int drive);
 };
 
 #define DRIVE_ATTR_PRESENT  0x01

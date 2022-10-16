@@ -67,12 +67,14 @@ struct __attribute__((__packed__)) fat16_dir_entry_t {
 };
 
 struct fat16_mount_t {
-    struct drive_t mounted_drive;
-    struct fat16_bpb_t param_block;
+    uint8_t present;
+    int drvn;
+    struct fat16_bpb_t bpb;
+    struct fat16_ebr_t ebr;
 };
 
-uint16_t fat16_read_fat_entry(uint8_t *fattable, uint32_t i);
-void load_fat(struct ata_bus_t *bus, uint8_t drv, struct fat16_bpb_t *bpb, uint8_t *fattable);
+uint16_t fat16_read_fat_entry(uint16_t *fattable, uint32_t i);
+void load_fat(struct ata_bus_t *bus, uint8_t drv, struct fat16_bpb_t *bpb, uint16_t *fattable);
 
 struct fat16_dir_entry_t *fat16_find_dir_entry(int fd);
 
@@ -84,6 +86,7 @@ int fat16_mkdir(const char *path, int flags);
 int fat16_getpath(int fd, char *path);
 int fat16_rmdir(const char *path);
 int fat16_rmfile(const char *path);
+int fat16_mount(int drive);
 
 void fat16_init();
 

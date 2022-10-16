@@ -10,7 +10,7 @@
 #include <klib.h>
 
 void ata_pio_init() {
-    ata_pio_scandrives();
+    //ata_pio_scandrives();
 #if 0
     struct ata_bus_t bus0;
     bus0.io_port_base = 0x1f0;

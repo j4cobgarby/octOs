@@ -3,34 +3,22 @@
 #include "kio.h"
 #include "klib.h"
 
-uint16_t fat16_read_fat_entry(uint8_t *fattable, uint32_t i) {
+#define MAX_MOUNTS 32
+
+struct fat16_mount_t mounts[MAX_MOUNTS];
+
+uint16_t fat16_read_fat_entry(uint16_t *fattable, uint32_t i) {
     
 }
 
+/* Loads the entire FAT of a given drive into fattable. 
+*/
+void load_fat(struct ata_bus_t *bus, uint8_t drv, struct fat16_bpb_t *bpb, uint16_t *fattable) {
+    //int fat1_sector = drivetable[drv]
+}
+
 struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
-    struct drive_t the_drive = drivetable[ifdtable[fd].drive];
-    char tmp[512];
-    struct fat16_bpb_t *bpb = tmp + 0x0b;
-    struct fat16_ebr_t *ebr = tmp + 0x0b + sizeof(struct fat16_bpb_t);
 
-    kio_printf("Reading dir entry\n");
-    drivetypetable[the_drive.type].rdsect(1024, 1, tmp, the_drive.drive_param);
-    kio_printf("Sig %x %x\n", tmp[0x01fe], tmp[0x1ff]);
-    kio_printf("\
-    Bytes per sect: %d\n\
-    #FATS: %d\n\
-    #Sects: %d\n\
-    #Large sects: %d\n", 
-    bpb->bytes_per_sect, bpb->number_of_fats, 
-    bpb->total_sects, bpb->largesect_count);
-
-    kio_printf("\
-    Drive #: %d\n\
-    Sig: %d\n",
-    ebr->drive_number,
-    ebr->sig);
-
-    kio_puts_n(ebr->label, 11);
 }
 
 void fat16_init() {
@@ -43,6 +31,7 @@ void fat16_init() {
     fsd.getpath = &fat16_getpath;
     fsd.rmdir = &fat16_rmdir;
     fsd.rmfile = &fat16_rmfile;
+    fsd.mount = &fat16_mount;
     kmemcpy(fsd.name, "FAT16", 6); // Copy the name (and null terminator)
     int n = register_filesystem(fsd);
 
@@ -66,6 +55,19 @@ int fat16_open(const char *path, int flags) {
 
     (path_in_drive++)[0] = 0;
     drive_num = katoi(path);
+
+    kio_printf("[FAT16] Opening file within drive %d\n", drive_num);
+    struct fat16_mount_t *mntparams = NULL;
+    for (int i = 0; i < MAX_MOUNTS; i++) {
+        if (mounts[i].drvn == drive_num) mntparams = &(mounts[i]);
+    }
+    if (!mntparams) {
+        kio_printf("[FAT16] Drive %d doesn't exist or isn't FAT16.\n", drive_num);
+        return -1;
+    }
+
+    kio_printf("Reserved sectors: %d\n", mntparams->bpb.resvd_sects);
+    kio_puts_n(mntparams->ebr.label, 11);
 
     fd = set_ifd(0, drive_num, path_in_drive);
 
@@ -113,5 +115,40 @@ int fat16_rmdir(const char *path) {
 
 int fat16_rmfile(const char *path) {
     kio_printf("Removing file %s\n", path);
+    return 0;
+}
+
+/* To mount a drive with this filesystem, we read the BPB and EBR
+    data structures which are in the first sector of the drive.
+    These store useful data about the device, which are needed by
+    the rest of the filesystem.
+*/
+int fat16_mount(int drive) {
+    int i;
+    for (i = 0; i < MAX_MOUNTS && mounts[i].present; i++);
+    if (i >= MAX_MOUNTS) {
+        kio_printf("[FAT16] Cannot mount drive %d because there are too many FAT16 drives mounted.\n", drive);
+        return -1;
+    }
+
+    kio_printf("[FAT16] Mounting drive %d with FAT16.\n", drive);
+
+    struct fat16_mount_t mnt;
+    mnt.present = 1;
+    mnt.drvn = drive;
+    struct drive_t the_drive = drivetable[drive];
+    char *tmp = kmalloc(drivetypetable[the_drive.type].bytespersector);
+
+    // This 1024 is the beginning sector to read from. This is currently 1024 because
+    // of how the disk I'm testing with is partitioned.
+    // TODO: Make the vfs system handle partitioned disks properly.
+    drivetypetable[the_drive.type].rdsect(1024, 1, tmp, the_drive.drive_param);
+    
+
+    kmemcpy(&(mnt.bpb), tmp + 0x0b, sizeof(struct fat16_bpb_t));
+    kmemcpy(&(mnt.ebr), tmp + 0x0b + sizeof(struct fat16_bpb_t), sizeof(struct fat16_ebr_t));
+
+    kfree(tmp);
+
     return 0;
 }
