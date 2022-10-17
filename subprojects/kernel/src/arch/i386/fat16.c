@@ -11,10 +11,28 @@ uint16_t fat16_read_fat_entry(uint16_t *fattable, uint32_t i) {
     
 }
 
+struct fat16_mount_t *find_mount(int drvn) {
+    for (int i = 0; i < MAX_MOUNTS; i++) {
+        if (mounts[i].present && mounts[i].drvn == drvn) {
+            return &(mounts[i]);
+        }
+    }
+    return NULL;
+}
+
 /* Loads the entire FAT of a given drive into fattable. 
+    This allocates memory for fattable. Make sure not to
+    allocate anything for it before calling.
 */
-void load_fat(struct ata_bus_t *bus, uint8_t drv, struct fat16_bpb_t *bpb, uint16_t *fattable) {
-    //int fat1_sector = drivetable[drv]
+int load_fat(uint8_t drv, uint16_t *fattable) {
+    struct fat16_mount_t *mntparams = find_mount(drv);
+    if (!mntparams) {
+        kio_printf("[FAT16] Drive %d doesn't exist or isn't FAT16.\n", drv);
+        return -1;
+    }
+    uint16_t fat_sector = mntparams->bpb.resvd_sects;
+    uint16_t fat_sectors = mntparams->bpb.sect_per_fat;
+    
 }
 
 struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
@@ -57,24 +75,17 @@ int fat16_open(const char *path, int flags) {
     drive_num = katoi(path);
 
     kio_printf("[FAT16] Opening file within drive %d\n", drive_num);
-    struct fat16_mount_t *mntparams = NULL;
-    for (int i = 0; i < MAX_MOUNTS; i++) {
-        if (mounts[i].drvn == drive_num) mntparams = &(mounts[i]);
-    }
+    struct fat16_mount_t *mntparams = find_mount(drive_num);
     if (!mntparams) {
         kio_printf("[FAT16] Drive %d doesn't exist or isn't FAT16.\n", drive_num);
         return -1;
     }
 
-    kio_printf("Reserved sectors: %d\n", mntparams->bpb.resvd_sects);
-    kio_puts_n(mntparams->ebr.label, 11);
-
     fd = set_ifd(0, drive_num, path_in_drive);
 
     ifdtable[fd].fsdat = kmalloc(sizeof(struct fat16_dir_entry_t));
-    //((struct fat16_dir_entry_t*)ifdtable[fd].fsdat)->
 
-    kio_printf("[FAT16] Opened file (%d): %d : %s\n", fd, drive_num, path_in_drive);
+    kio_printf("[FAT16] Opened file (fd/drvn/path): %d/%d/%s\n", fd, drive_num, path_in_drive);
     return 0;
 }
 
@@ -130,6 +141,7 @@ int fat16_mount(int drive) {
         kio_printf("[FAT16] Cannot mount drive %d because there are too many FAT16 drives mounted.\n", drive);
         return -1;
     }
+    kio_printf("[FAT16] Chosen mount number %d\n", i);
 
     kio_printf("[FAT16] Mounting drive %d with FAT16.\n", drive);
 
@@ -147,6 +159,7 @@ int fat16_mount(int drive) {
 
     kmemcpy(&(mnt.bpb), tmp + 0x0b, sizeof(struct fat16_bpb_t));
     kmemcpy(&(mnt.ebr), tmp + 0x0b + sizeof(struct fat16_bpb_t), sizeof(struct fat16_ebr_t));
+    mounts[i] = mnt;
 
     kfree(tmp);
 

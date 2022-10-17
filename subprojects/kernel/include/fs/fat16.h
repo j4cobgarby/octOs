@@ -74,7 +74,7 @@ struct fat16_mount_t {
 };
 
 uint16_t fat16_read_fat_entry(uint16_t *fattable, uint32_t i);
-void load_fat(struct ata_bus_t *bus, uint8_t drv, struct fat16_bpb_t *bpb, uint16_t *fattable);
+int load_fat(uint8_t drv, uint16_t *fattable);
 
 struct fat16_dir_entry_t *fat16_find_dir_entry(int fd);
 
