@@ -45,7 +45,7 @@ struct drive_t {
     uint8_t attr;
     int     type; // The type of drive
     int     fs; // The type of filesystem present on the drive
-
+    int     start_sector; // Offset applied to reads and writes
     void    *drive_param; // Parameter passed to the drive's functions
 };
 
@@ -84,7 +84,7 @@ int register_drivetype(unsigned int blocksize,
     void (*wrsect)(uint32_t, uint8_t, void*, void*),
     char name[DRIVETYPE_NAME_LEN]);
 
-int register_drive(int drivetype, int fstype, void *param);
+int register_drive(int drivetype, int fstype, void *param, int offset);
 
 int register_filesystem(struct filesystemdescriptor_t fs);
 
@@ -115,5 +115,11 @@ int vfs_rmdir(const char *path);
 int vfs_rmfile(const char *path);
 
 const char *vfs_get_nodename(const char *path); // /dir/dir2/file.txt >> file.txt
+
+// Helper functions to read sectors from drive number
+// Applies the drive's offset, to deal with partitioned
+// disks.
+void drive_rdsect(int drv, int lba, int count, void *dest);
+void drive_wrsect(int drv, int lba, int count, void *src);
 
 #endif

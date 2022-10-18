@@ -1,6 +1,6 @@
 CC = i686-elf-gcc
 ASM = nasm
-CFLAGS = -Wall -Wextra -ffreestanding -I include -I ../klib/include -DKERNEL_DEBUG\
+CFLAGS = -Wall -Wextra -ffreestanding -Wunused-parameter -I include -I ../klib/include -DKERNEL_DEBUG\
 -mno-red-zone -mgeneral-regs-only -O2
 ASMFLAGS = -felf32 -i src/arch/i386/
 BUILDDIR=../../build

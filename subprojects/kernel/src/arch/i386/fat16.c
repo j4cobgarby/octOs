@@ -24,15 +24,19 @@ struct fat16_mount_t *find_mount(int drvn) {
     This allocates memory for fattable. Make sure not to
     allocate anything for it before calling.
 */
-int load_fat(uint8_t drv, uint16_t *fattable) {
+uint16_t *load_fat(int drv) {
     struct fat16_mount_t *mntparams = find_mount(drv);
     if (!mntparams) {
         kio_printf("[FAT16] Drive %d doesn't exist or isn't FAT16.\n", drv);
-        return -1;
+        return NULL;
     }
     uint16_t fat_sector = mntparams->bpb.resvd_sects;
     uint16_t fat_sectors = mntparams->bpb.sect_per_fat;
-    
+    kio_printf("%d sectors needed for FAT\n", mntparams->bpb.sect_per_fat);
+    kio_printf("Allocating %d bytes for the FAT table\n", fat_sectors*drivetypetable[drivetable[drv].type].bytespersector);
+    uint16_t *fattable = kmalloc(fat_sectors * drivetypetable[drivetable[drv].type].bytespersector);
+    drive_rdsect(drv, fat_sector, fat_sectors, fattable);
+    return fattable;
 }
 
 struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
@@ -80,6 +84,14 @@ int fat16_open(const char *path, int flags) {
         kio_printf("[FAT16] Drive %d doesn't exist or isn't FAT16.\n", drive_num);
         return -1;
     }
+
+    uint16_t *fattable = load_fat(drive_num);
+    if (!fattable) {
+        kio_printf("[FAT16] Failed to load FAT of drive %d\n", drive_num);
+        return -1;
+    }
+
+    kio_printf("[FAT16] Successfully loaded FAT table of drive %d\n", drive_num);
 
     fd = set_ifd(0, drive_num, path_in_drive);
 
@@ -154,8 +166,8 @@ int fat16_mount(int drive) {
     // This 1024 is the beginning sector to read from. This is currently 1024 because
     // of how the disk I'm testing with is partitioned.
     // TODO: Make the vfs system handle partitioned disks properly.
-    drivetypetable[the_drive.type].rdsect(1024, 1, tmp, the_drive.drive_param);
-    
+    //drivetypetable[the_drive.type].rdsect(1024, 1, tmp, the_drive.drive_param);
+    drive_rdsect(drive, 0, 1, tmp);
 
     kmemcpy(&(mnt.bpb), tmp + 0x0b, sizeof(struct fat16_bpb_t));
     kmemcpy(&(mnt.ebr), tmp + 0x0b + sizeof(struct fat16_bpb_t), sizeof(struct fat16_ebr_t));

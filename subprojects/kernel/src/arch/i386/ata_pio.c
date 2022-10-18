@@ -254,7 +254,10 @@ void ata_pio_scandrives() {
             actual_drive->first_sector = 0;
             actual_drive->sector_count = 100;
 
-            int d = register_drive(get_drivetype_index("ATA"), get_filesystem_index("FAT16"), actual_drive);
+            // This currently starts every drive at offset 1024,
+            // because of the offset of the partition in my test drive.
+            //TODO: Work out where partitions begin.
+            int d = register_drive(get_drivetype_index("ATA"), get_filesystem_index("FAT16"), actual_drive, 1024);
             kio_printf("[ATA] New drive registered (%x:%d [%d])\n", 
                 actual_drive->io_port_base, actual_drive->drive_n, d);
         } else {

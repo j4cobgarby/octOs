@@ -144,3 +144,15 @@ const char *vfs_get_nodename(const char *path) {
     }
     return path;
 }
+
+void drive_rdsect(int drv, int lba, int count, void *dest) {
+    drivetypetable[drivetable[drv].type].rdsect(
+        lba + drivetable[drv].start_sector, count, dest, 
+        drivetable[drv].drive_param);
+}
+
+void drive_wrsect(int drv, int lba, int count, void *src) {
+    drivetypetable[drivetable[drv].type].wrsect(
+        lba + drivetable[drv].start_sector, count, src, 
+        drivetable[drv].drive_param);
+}

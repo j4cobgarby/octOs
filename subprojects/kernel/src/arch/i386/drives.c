@@ -23,12 +23,13 @@ int register_drivetype(unsigned int bytespersector,
     return id++;
 }
 
-int register_drive(int drivetype, int fstype, void *param) {
+int register_drive(int drivetype, int fstype, void *param, int offset) {
     static int id = 0;
 
     drivetable[id].drive_param = param;
     drivetable[id].fs = fstype;
     drivetable[id].type = drivetype;
+    drivetable[id].start_sector = offset;
     fsdtable[fstype].mount(id);
 
     return id++;

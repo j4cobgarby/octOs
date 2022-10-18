@@ -1,5 +1,5 @@
 CC = i686-elf-gcc
-CFLAGS = -Wall -Wextra -ffreestanding -I include -I ../kernel/include -O2
+CFLAGS = -Wall -Wextra -ffreestanding -Wno-unused-parameter -I include -I ../kernel/include -O2
 BUILDDIR=../../build/klib
 
 OBJS = kheap.o \
