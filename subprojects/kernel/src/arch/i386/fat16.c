@@ -32,8 +32,6 @@ uint16_t *load_fat(int drv) {
     }
     uint16_t fat_sector = mntparams->bpb.resvd_sects;
     uint16_t fat_sectors = mntparams->bpb.sect_per_fat;
-    kio_printf("%d sectors needed for FAT\n", mntparams->bpb.sect_per_fat);
-    kio_printf("Allocating %d bytes for the FAT table\n", fat_sectors*drivetypetable[drivetable[drv].type].bytespersector);
     uint16_t *fattable = kmalloc(fat_sectors * drivetypetable[drivetable[drv].type].bytespersector);
     drive_rdsect(drv, fat_sector, fat_sectors, fattable);
     return fattable;
@@ -91,13 +89,29 @@ int fat16_open(const char *path, int flags) {
         return -1;
     }
 
-    kio_printf("[FAT16] Successfully loaded FAT table of drive %d\n", drive_num);
-
     fd = set_ifd(0, drive_num, path_in_drive);
 
     ifdtable[fd].fsdat = kmalloc(sizeof(struct fat16_dir_entry_t));
 
     kio_printf("[FAT16] Opened file (fd/drvn/path): %d/%d/%s\n", fd, drive_num, path_in_drive);
+
+    int rootdir_start_sector = mntparams->bpb.resvd_sects + 
+        mntparams->bpb.sect_per_fat*mntparams->bpb.number_of_fats;
+    int bps = drivetypetable[drivetable[drive_num].type].bytespersector;
+    // Total bytes of root dir, divided by bytes per sector (rounding UP)
+    // So that we're reading sufficient sectors to get whole rootdir
+    int rootdir_bytes = mntparams->bpb.rootdir_entries*sizeof(struct fat16_dir_entry_t);
+    int rootdir_sectors = (rootdir_bytes + (bps-1)) / bps;
+    kio_printf("[FAT16] %d sector(s) needed for the root dir\n", rootdir_sectors);
+    kio_printf("[FAT16] %d entries in rootdir\n", mntparams->bpb.rootdir_entries);
+    struct fat16_dir_entry_t *rootdir = kmalloc(rootdir_sectors * bps);
+    drive_rdsect(drive_num, rootdir_start_sector, rootdir_sectors, rootdir);
+
+    for (int i = 0; i < 20; i++) {
+        kio_puts_n(rootdir[i].filename, 8);
+        kio_printf("\n");
+    }
+
     return 0;
 }
 
