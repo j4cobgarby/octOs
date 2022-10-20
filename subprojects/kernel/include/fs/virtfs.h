@@ -9,7 +9,7 @@
 #define DRIVETYPETABLE_SIZE     32
 #define DRIVETYPE_NAME_LEN      16
 #define FSDTABLE_SIZE           8
-#define PATH_MAX_LEN            248
+#define PATH_MAX_LEN            128
 #define FSD_NAME_LEN            10
 #define IFDTABLE_SIZE           128
 

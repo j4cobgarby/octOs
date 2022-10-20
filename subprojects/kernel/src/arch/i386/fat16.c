@@ -7,17 +7,26 @@
 
 struct fat16_mount_t mounts[MAX_MOUNTS];
 
+uint16_t *current_fat;
+struct fat16_mount_t *current_mount;
+
 uint16_t fat16_read_fat_entry(uint16_t *fattable, uint32_t i) {
     
 }
 
-struct fat16_mount_t *find_mount(int drvn) {
+int find_mountn(int drvn) {
     for (int i = 0; i < MAX_MOUNTS; i++) {
         if (mounts[i].present && mounts[i].drvn == drvn) {
-            return &(mounts[i]);
+            return i;
         }
     }
-    return NULL;
+    return -1;
+}
+
+struct fat16_mount_t *find_mount(int drvn) {
+    int n = find_mountn(drvn);
+    if (n >= 0) return &(mounts[n]);
+    else return NULL;
 }
 
 /* Loads the entire FAT of a given drive into fattable. 
@@ -37,8 +46,43 @@ uint16_t *load_fat(int drv) {
     return fattable;
 }
 
-struct fat16_dir_entry_t *fat16_find_dir_entry(int fd) {
+// Finds the dir entry for a given path.
+// `path` is relative to the drive `drvn`.
+struct fat16_dir_entry_t *fat16_find_dir_entry(int drvn, char *path) {
+    struct fat16_mount_t *mnt = find_mount(drvn);
+    if (mnt->drvn != current_mount->drvn) {
+        current_fat = load_fat(drvn);
+        if (current_fat) {
+            current_mount = mnt;
+        } else {
+            return NULL;
+        }
+    }
 
+    // 1) Read root directory
+    // 2) Check if target node is there
+    // 3) Go to subdir of current directory according to path
+    // 4) Check if target node is there
+    // 5) Goto step 3
+
+    int currdir_sector = mnt->bpb.resvd_sects + 
+        mnt->bpb.number_of_fats * mnt->bpb.sect_per_fat;
+    int bps = drivetypetable[drivetable[drvn].type].bytespersector;
+    // Total bytes of root dir, divided by bytes per sector (rounding UP)
+    // So that we're reading sufficient sectors to get whole rootdir
+    int currdir_entries = mnt->bpb.rootdir_entries;
+
+    while (1) {
+        
+        int currdir_bytes = currdir_entries*sizeof(struct fat16_dir_entry_t);
+        int currdir_sectors = (currdir_bytes + (bps-1)) / bps;
+
+        struct fat16_dir_entry_t *curr_dir = kmalloc(currdir_sectors * bps);
+        drive_rdsect(drvn, currdir_sector, currdir_sectors, curr_dir);
+        for (int i = 0; i < mnt->bpb.rootdir_entries; i++) {
+            // Check if target node is found
+        }
+    }
 }
 
 void fat16_init() {
@@ -107,10 +151,16 @@ int fat16_open(const char *path, int flags) {
     struct fat16_dir_entry_t *rootdir = kmalloc(rootdir_sectors * bps);
     drive_rdsect(drive_num, rootdir_start_sector, rootdir_sectors, rootdir);
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < mntparams->bpb.rootdir_entries; i++) {
+        if (rootdir[i].filename[0] == 0x00) break;
         kio_puts_n(rootdir[i].filename, 8);
-        kio_printf("\n");
+        kio_putc('.');
+        kio_puts_n(rootdir[i].extension, 3);
+        kio_printf("   Start cluster:%d, %d bytes long, attr: %x\n", rootdir[i].cluster_start, rootdir[i].bytes, rootdir[i].attr);
     }
+
+    kfree(fattable);
+    kfree(rootdir);
 
     return 0;
 }
@@ -122,7 +172,7 @@ int fat16_close(int fd) {
 
 int fat16_read(int fd, void *dest, uint32_t start, uint32_t n) {
     kio_printf("[FAT16] Reading file %d\n", fd);
-    fat16_find_dir_entry(fd);
+    //fat16_find_dir_entry();
 
     // 1) Determine which physical drive type this file is on
     // 2) Starting at the root directory, 
